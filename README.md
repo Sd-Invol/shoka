@@ -1,4 +1,4 @@
 UVa-Online-Judge
 ================
 
-Codein UVa Online Judge 
+Code in UVa Online Judge 
