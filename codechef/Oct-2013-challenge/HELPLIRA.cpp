@@ -34,7 +34,7 @@ void work()
         mn = min(mn , make_pair(s , -i));
         mx = max(mx , make_pair(s , i));
     }
-    printf("%d %d\n" , mx.se , -mn.se);
+    printf("%d %d\n" , -mn.se , mx.se);
 }
 
 int main()
