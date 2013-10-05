@@ -22,8 +22,7 @@ typedef unsigned long long ULL;
 
 #define N 100005
 int n ;
-int a[N];
-pair<int , int> b[N];
+int a[N] , b[N];
 
 int F(int x)
 {
@@ -43,15 +42,14 @@ void work()
         scanf("%d",&a[i]);
     for (i = 0 ; i < n ; ++ i)
     {
-        scanf("%d",&x) , b[i].se = x;
-        b[i].fi = F(x);
+        scanf("%d",&x);
+        b[i] = F(x);
     }
     sort(b , b + n);
     for (i = 0 ; i < n ; ++ i)
     {
-        x = a[i];
-        y = F(x);
-        j = lower_bound(b , b + n , make_pair(y , (-1 << 30) - 1)) - b;
+        y = F(a[i]);
+        j = lower_bound(b , b + n , y) - b;
         ans += (double)j / n;
     }
     printf("%.6f\n" , ans);
@@ -59,7 +57,6 @@ void work()
 
 int main()
 {
-    freopen("~input.txt" , "r" , stdin);
     int _; scanf("%d",&_); while (_ --)
     //while (~scanf("%d",&n))
         work();
