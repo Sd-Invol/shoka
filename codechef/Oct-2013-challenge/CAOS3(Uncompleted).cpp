@@ -21,26 +21,24 @@ typedef long long LL;
 typedef unsigned long long ULL;
 
 #define N 25
-int n , m , ans , id[N] , od[N];
+int n , m;
 char s[N][N];
-vector<int> e[N];
-int re[N] , f[N];
-bool find(int x)
+bool g[N][N];
+int f[N][N][N][N];
+int dfs(int lx , int ly , int rx , int ry)
 {
-    for (int i = 0 ; i < e[x].size() ; ++ i)
-    {
-        int y = e[x][i];
-        if (!f[y])
-        {
-            f[y] = 1;
-            if (!re[y] || find(re[y]))
-            {
-                re[y] = x;
-                return 1;
-            }
-        }
-    }
-    return 0;
+    if (lx > rx || ly > ry) return 0;
+    if (~f[lx][ly][rx][ry]) return f[lx][ly][rx][ry];
+    set<int> hash;
+    for (int i = lx ; i <= rx ; ++ i)
+        for (int j = ly ; j <= ry ; ++ j)
+            if (g[i][j])
+                hash.insert(dfs(lx , ly , i - 1 , j - 1) ^ dfs(lx , j + 1 , i - 1 , ry) ^
+                            dfs(i + 1 , ly , rx , j - 1) ^ dfs(i + 1 , j + 1 , rx , ry));
+    f[lx][ly][rx][ry] = 0;
+    while (hash.count(f[lx][ly][rx][ry]))
+        ++ f[lx][ly][rx][ry];
+    return f[lx][ly][rx][ry];
 }
 
 void work()
@@ -48,51 +46,25 @@ void work()
     int i , j , x , y;
     scanf("%d%d",&n,&m);
     for (i = 1 ; i <= n ; ++ i)
-        scanf("%s" , s[i] + 1) , e[i].clear();
-
+        scanf("%s" , s[i] + 1);
+    memset(g , 0 ,sizeof(g));
     for (i = 3 ; i <= n - 2 ; ++ i)
         for (j = 3 ; j <= m - 2 ; ++ j)
         {
             if (s[i][j] == '#' || s[i - 1][j] == '#' || s[i - 2][j] == '#' || s[i + 1][j] == '#' || s[i + 2][j] == '#') continue;
-            if (s[i][j - 2] == '#' || s[i][j - 1] == '#' || s[i][j] == '#' || s[i][j + 1] == '#' || s[i][j + 1] == '#') continue;
-            e[i].push_back(j);
-            printf("%d %d\n" , i , j);
+            if (s[i][j - 2] == '#' || s[i][j - 1] == '#' || s[i][j] == '#' || s[i][j + 2] == '#' || s[i][j + 1] == '#') continue;
+            g[i][j] = 1;
         }
-    memset(re , 0 , sizeof(re));
-    memset(id , 0 , sizeof(id));
-    memset(od , 0 , sizeof(od));
-    for (i = 1 ; i <= n ; ++ i)
-    {
-        memset(f , 0 , sizeof(f));
-        ans += find(i);
-    }
-    for (i = 1 ; i <= n ; ++ i)
-    {
-        for (j = 0 ; j < e[i].size() ; ++ j)
-        {
-            x = e[i][j];
-            if (re[x] == i)
-                ++ od[x];
-            else ++ id[x];
-        }
-    }
-    ans = 0;
-    for (i = 1 ; i <= m ; ++ i)
-    {
-        if (!re[i])
-            -- ans;
-        if (!id[i])
-            ++ ans;
-    }
-    puts(ans & 1 ? "Asuna" : "Kirito");
+    memset(f , -1 , sizeof(f));
+    puts(dfs(1 , 1 , n , m) ? "Asuna" : "Kirito");
 }
-
 
 int main()
 {
     freopen("~input.txt" , "r" , stdin);
     //freopen("~output.txt" , "w" , stdout);
     int _; scanf("%d",&_); while (_ --)
+    //while (scanf("%d%d",&n,&m) , n || m)
         work();
     return 0;
 }
