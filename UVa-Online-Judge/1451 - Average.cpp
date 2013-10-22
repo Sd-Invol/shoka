@@ -18,62 +18,61 @@
 //#pragma comment(linker, "/STACK:16777216")
 using namespace std;
 typedef long long LL;
-#define N 105
+typedef unsigned long long ULL;
 
-int n , W , H , ca;
-pair<int , int> a[N] , b[N] , res;
+#define N 100005
+int n , L;
+char s[N];
+double a[N] , eps = 1e-7;
+pair<int , int> res;
 
-bool check(int L)
+bool check(double val)
 {
-    int i , j;
-    for (i = 0 ; i <= n ; ++ i)
+    int i , l , r;
+    double ans = -1e60;
+    pair<double , int> x(1e60 , 0);
+    for (i = 1 ; i <= n ; ++ i)
+        a[i] = a[i - 1] + (s[i] - '0') - val;
+    for (i = L ; i <= n ; ++ i)
     {
-        int y = a[i].se , x = 0;
-        if (y + L > H) continue;
-        for (j = 1 ; j <= n ; ++ j)
-            if (a[j].se > y && a[j].se < y + L)
-            {
-                if (a[j].fi - x >= L)
-                {
-                    res = make_pair(x , y);
-                    return 1;
-                }
-                x = a[j].fi;
-            }
-        if (W - x >= L)
-        {
-            res = make_pair(x , y);
-            return 1;
-        }
+        x = min(x , make_pair(a[i - L] , L - i));
+        double val = a[i] - x.fi;
+        int len = i + x.se , top = -x.se;
+        if (val > ans + eps)
+            ans = val , l = top , r = top + len;
+        else if (val > ans - eps && len < r - l)
+            ans = val , l = top , r = top + len;
+        else if (val > ans - eps && len == r - l && top < l)
+            ans = val , l = top , r = top + len;
+    }
+    if (ans >= -eps)
+    {
+        res = make_pair(l + 1 , r);
+        return 1;
     }
     return 0;
 }
-
 void work()
 {
-    int i ;
-    if (ca ++) puts("");
-    scanf("%d%d%d",&n,&W,&H);
-    for (i = 1 ; i <= n ; ++ i)
-        scanf("%d%d",&a[i].fi , &a[i].se);
-    sort(a + 1 , a + 1 + n);
-
-    int top = 1 , bot = min(W , H) , mid;
-    while (top < bot)
+    scanf("%d%d",&n,&L);
+    scanf("%s" , s + 1);
+    double l = 0 , r = 1 , m;
+    res = make_pair(1 << 30 , 1 << 30);
+    while (r - l > 1e-10)
     {
-        mid = (top + bot + 1) >> 1;
-        if (check(mid))
-            top = mid;
-        else bot = mid - 1;
+        m = .5 * (l + r);
+        if (check(m))
+            l = m;
+        else
+            r = m;
     }
-    printf("%d %d %d\n" , res.fi , res.se , top);
+    printf("%d %d\n" , res.fi , res.se);
 }
 
 int main()
 {
     freopen("~input.txt" , "r" , stdin);
     int _; scanf("%d",&_); while (_ --)
-    //while (~)
         work();
     return 0;
 }
