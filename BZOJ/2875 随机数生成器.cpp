@@ -21,13 +21,12 @@ struct matrix
 {
     int n , m;
     LL a[2][2];
-    matrix () {memset(a , 0 , sizeof(a));}
+    matrix (int _n , int _m) { n = _n , m = _m , memset(a , 0 , sizeof(a));}
 };
 
 matrix operator * (matrix A , matrix B)
 {
-    matrix ans;
-    ans.n = A.n , ans.m = B.m;
+    matrix ans(A.n , B.m);
     for (int i = 0 ; i < A.n ; ++ i)
         for (int j = 0 ; j < B.m ; ++ j)
             for (int k = 0 ; k < A.m ; ++ k)
@@ -39,8 +38,7 @@ int main()
 {
     freopen("~input.txt" , "r" , stdin);
     cin >> m >> a >> c >> X >> n >> g;
-    matrix I , P;
-    I.n = 1 , I.m = P.n = P.m = 2;
+    matrix I(1 , 2) , P(2 , 2);
     I.a[0][0] = X , I.a[0][1] = 1;
     P.a[0][0] = a , P.a[1][0] = c , P.a[1][1] = 1;
 
