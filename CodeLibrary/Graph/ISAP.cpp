@@ -21,7 +21,7 @@ void BFS()
     memset(gap , 0 , sizeof(gap));
     for (i = 1 ;i <= nodecnt ; i ++)
         d[i] = nodecnt + 1;
-    q[++ bot] = t , d[t] = 1;
+    q[++ bot] = t , d[t] = 0;
     while (top != bot + 1)
     {
         x = q[top ++];
