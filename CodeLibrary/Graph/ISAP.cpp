@@ -71,7 +71,7 @@ int SAP()
             for (i = pre[x] ; ~i ;i = e[i].next)
                 if (e[i].f && (!~j || d[e[i].x] < d[e[j].x]))
                     j = i;
-            if (!-- gap[d[x]]) break;
+            if (!~j || !-- gap[d[x]]) break;
             cur[x] = j;
             ++ gap[d[x] = d[e[j].x] + 1];
             if (x != s)
