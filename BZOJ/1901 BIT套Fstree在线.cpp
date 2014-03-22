@@ -31,8 +31,7 @@ void add(int& p , int l , int r , int x , int w)
     if (!p) p = newnode();
     if (l == r)
         sum[p] += w;
-    else
-    {
+    else {
         MID;
         if (x <= mid)
             add(ch[p][0] , Left , x , w);
@@ -54,14 +53,11 @@ int query(int l , int r , int K)
     int cnt = 0;
     for (int i = 0 ; i < sp ; ++ i) cnt += sum[ch[PP[i]][0]];
     for (int i = 0 ; i < sm ; ++ i) cnt -= sum[ch[MM[i]][0]];
-    if (cnt >= K)
-    {
+    if (cnt >= K) {
         for (int i = 0 ; i < sp ; ++ i) PP[i] = ch[PP[i]][0];
         for (int i = 0 ; i < sm ; ++ i) MM[i] = ch[MM[i]][0];
         return query(Left , K);
-    }
-    else
-    {
+    } else {
         for (int i = 0 ; i < sp ; ++ i) PP[i] = ch[PP[i]][1];
         for (int i = 0 ; i < sm ; ++ i) MM[i] = ch[MM[i]][1];
         return query(Right , K - cnt);
@@ -74,18 +70,14 @@ void work()
     scanf("%d%d",&n,&m);
     for (i = 1 ; i <= n ; ++ i)
         scanf("%d",&a[i]) , add(i , a[i] , 1);
-    for (i = 1 ; i <= m ; ++ i)
-    {
+    for (i = 1 ; i <= m ; ++ i) {
         scanf("%s%d%d",str,&x,&y);
-        if (*str == 'Q')
-        {
+        if (*str == 'Q') {
             scanf("%d",&k);
             sp = 0 ; for (j = y ; j ; j -= j & -j) PP[sp ++] = c[j];
             sm = 0 ; for (j = x-1 ; j ; j -= j & -j) MM[sm ++] = c[j];
             printf("%d\n" , query(0 , D , k));
-        }
-        else
-        {
+        } else {
             add(x , a[x] , -1);
             a[x] = y;
             add(x , a[x] , 1);
