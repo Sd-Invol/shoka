@@ -35,7 +35,7 @@ class Schedule extends Thread {
 	public void run() {
 		while (true) {
 			Q.get();
-			if (Q.type == true || Q.type == false)  {// F_R
+			if (true == true)  {// F_R
 				if (Q.n > floor) {
 					for (int i = floor ; i < Q.n ; ++ i) {
 						output res = new output(i , 1);
@@ -67,10 +67,8 @@ class Schedule extends Thread {
 						++ time;
 					} catch (InterruptedException e) {}	
 				}
-			} else { // E_R
-				
-			}
-			
+				floor = Q.n;
+			} 
 		}
 	}
 	
@@ -152,3 +150,4 @@ class Query {
 		notifyAll();
 	}
 }
+
