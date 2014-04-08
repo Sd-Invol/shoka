@@ -6,18 +6,9 @@ public class Elevator {
     	Query Q = new Query();
     	Schedule OO = new Schedule(Q);
     	Work XX = new Work(Q);
-    	Ele WJ = new Ele();
     	OO.start();
     	XX.start();
-    	WJ.start();
     } 
-}
-
-class Ele extends Thread {
-	
-	public void run() {
-		
-	}
 }
 
 class Work extends Thread {
@@ -44,8 +35,38 @@ class Schedule extends Thread {
 	public void run() {
 		while (true) {
 			Q.get();
-			if (Q.type == true)  {// F_R
-				
+			if (Q.type == true || Q.type == false)  {// F_R
+				if (Q.n > floor) {
+					for (int i = floor ; i < Q.n ; ++ i) {
+						output res = new output(i , 1);
+						res.print();
+						try {
+							sleep(1000);
+							++ time;
+						} catch (InterruptedException e) {}
+					}
+					output res = new output(Q.n , 0);
+					res.print();
+					try {
+						sleep(1000);
+						++ time;
+					} catch (InterruptedException e) {}
+				} else {
+					for (int i = floor ; i > Q.n ; -- i) {
+						output res = new output(i , -1);
+						res.print();
+						try {
+							sleep(1000);
+							++ time;
+						} catch (InterruptedException e) {}
+					}
+					output res = new output(Q.n , 0);
+					res.print();
+					try {
+						sleep(1000);
+						++ time;
+					} catch (InterruptedException e) {}	
+				}
 			} else { // E_R
 				
 			}
