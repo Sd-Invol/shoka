@@ -10,9 +10,9 @@
 using namespace std;
 typedef long long LL;
 
-const double eps = 1e-8 , pi = cos(-1.0);
+const double eps = 1e-6 , pi = acos(-1.0);
 int dcmp(double x) {
-    return fabs(x) < eps ? 0 : x < 0 ? -1 : 1;
+    return (x > eps) - (x < -eps);
 }
 
 struct Point
@@ -27,7 +27,9 @@ struct Point
         printf("%f %f\n", x , y);
     }
     bool operator < (const Point& R) const{
-        return x < R.x || (x == R.x && y < R.y);
+        if (dcmp(x - R.x) == 0)
+            return dcmp(y - R.y) < 0;
+        return dcmp(x - R.x) < 0;
     }
     bool operator == (const Point& R) const{
         return dcmp(x - R.x) == 0 && dcmp(y - R.y) == 0;
@@ -43,10 +45,10 @@ struct Point
     }
     Point operator / (const double& R) const{
         return Point(x / R , y / R);
-    }
+    }// Cross Product
     double operator ^ (const Point& R) const{
         return x * R.y - y * R.x;
-    }
+    }// dot
     double operator % (const Point& R) const{
         return x * R.x + y * R.y;
     }
@@ -55,55 +57,60 @@ struct Point
         return sqrt(*this % *this);
     }
 };
-
-double Angle(Point A , Point B)
-{
+// 向量的极角，[0,2pi)
+double Angle(Point V) {
+    return atan2(V.y , V.x);
+}
+// 两个向量的夹角，不分正负
+double Angle(Point A , Point B) {
     return acos((A % B) / A.len() / B.len());
 }
-Point Rotate(Point A , double rad)
-{
+// 逆时针旋转
+Point Rotate(Point A , double rad) {
     double Sin = sin(rad) , Cos = cos(rad);
     return Point(A.x * Cos - A.y * Sin , A.x * Sin + A.y * Cos);
 }
-Point Normal(Point A)
-{
+// 向量的单位法向量，利用旋转得到
+Point Normal(Point A) {
     double L = A.len();
     return Point(-A.y / L , A.x / L);
 }
-Point GetLineIntersection(Point P , Point v , Point Q , Point w)
-{
+// 直线交点，v和w为两个直线的方向向量，
+// 设交点的参数为P+vt,Q+wt,连立方程解t
+// 线段，射线对这个t的参数有限制，很好理解。
+Point GetLineIntersection(Point P , Point v , Point Q , Point w) {
     Point u = P - Q;
     double t1 = (w ^ u) / (v ^ w);
     return P + v * t1;
 }
-double DistancePointToLine(Point P , Point A , Point B)
-{
+// 点到直线距离，这里直线是用两个点表示的
+double DistancePointToLine(Point P , Point A , Point B) {
     Point v = B - A;
     return (v ^ (P - A)) / v.len();
 }
-double DistancePointToSegment(Point P , Point A , Point B)
-{
+// 点到线段距离，就是上面的代码判断一下P在AB上投影的位置。
+double DistancePointToSegment(Point P , Point A , Point B) {
     if (A == B) return (P - A).len();
     Point v1 = B - A , v2 = P - A , v3 = P - B;
     if (dcmp(v1 % v2) < 0) return v2.len();
     if (dcmp(v1 % v3) > 0) return v3.len();
     return fabs(v1 ^ v2) / v1.len();
 }
-Point GetLineProjection(Point P , Point A , Point B)
-{
+// 返回点在直线上的投影
+Point GetLineProjection(Point P , Point A , Point B) {
     Point v = B - A;
     return A + v * (v % (P - A) / (v % v));
 }
-bool SegmentProperIntersection(Point a1 , Point a2 , Point b1 , Point b2)
-{
+// 判断线段是否相交，没有考虑共线的情况。
+bool SegmentProperIntersection(Point a1 , Point a2 , Point b1 , Point b2) {
     double c1 = (a2 - a1) ^ (b1 - a1);
     double c2 = (a2 - a1) ^ (b2 - a1);
     double c3 = (b2 - b1) ^ (a1 - b1);
     double c4 = (b2 - b1) ^ (a2 - b1);
     return dcmp(c1) * dcmp(c2) < 0 && dcmp(c3) * dcmp(c4) < 0;
 }
-bool OnSegment(Point P , Point a1 , Point a2)
-{
+// 点是否在线段上,判定方式为到两个端点的方向是否不一致。
+bool OnSegment(Point P , Point a1 , Point a2) {
     return dcmp((a1 - P) ^ (a2 - P)) == 0 && dcmp((a1 - P) % (a2 - P)) < 0;
 }
 struct Line
@@ -117,18 +124,20 @@ struct Line
 };
 struct Circle
 {
-    Point C;
+    Point O;
     double r;
     Circle () {}
-    Circle (Point _C , double _r) {C = _C , r = _r;}
-    Point point(double arc){
-        return Point(C.x + cos(arc) * r , C.y + sin(arc) * r);
+    Circle (Point _O , double _r) {O = _O , r = _r;}
+    Point point(double arc) {
+        return Point(O.x + cos(arc) * r , O.y + sin(arc) * r);
     }
 };
 
-int getLineCircleIntersection(Line L , Circle C , double& t1 , double& t2 , vector<Point>& sol)
-{
-    double a = L.V.x , b = L.P.x - C.C.x , c = L.V.y , d = L.P.y - C.C.y;
+// 判定直线与圆相交
+// 方法为连立直线的参数方程与圆的方程，很好理解
+// t1,t2为两个参数，sol为点集。有了参数，射线线段什么的也很方便
+int getLineCircleIntersection(Line L , Circle C , double& t1 , double& t2 , vector<Point>& sol) {
+    double a = L.V.x , b = L.P.x - C.O.x , c = L.V.y , d = L.P.y - C.O.y;
     double e = a * a + c * c , f = 2 * (a * b + c * d) , g = b * b + d * d - C.r * C.r;
     double delta = f * f - 4 * e * g;
     if (dcmp(delta) < 0) return 0;
@@ -143,27 +152,24 @@ int getLineCircleIntersection(Line L , Circle C , double& t1 , double& t2 , vect
     sol.push_back(L.point(t1)) , sol.push_back(L.point(t2));
     return 2;
 }
-double angle(Point V)
-{
-    return atan2(V.y , V.x);
-}
-int getCircleCircleIntersection(Circle C1 , Circle C2 , vector<Point>& sol)
-{
-    double d = (C1.C - C2.C).len();
-    if (dcmp(d) == 0)
+// 判定圆和圆之间的关系
+// 内含，内切，相交，重合，外切，相离
+int getCircleCircleIntersection(Circle C1 , Circle C2 , vector<Point>& sol) {
+    double d = (C1.O - C2.O).len();
+    if (dcmp(d) == 0)//同心
     {
-        if (dcmp(C1.r - C2.r) == 0)
+        if (dcmp(C1.r - C2.r) == 0)//重合
             return -1;
-        return 0;
+        return 0;//内含
     }
-    if (dcmp(C1.r - C2.r - d) < 0) return 0;
-    if (dcmp(fabs(C1.r - C2.r) - d) > 0) return 0;
+    if (dcmp(C1.r - C2.r - d) < 0) return 0;//内含
+    if (dcmp(fabs(C1.r - C2.r) - d) > 0) return 0; //相离
 
-    double a = angle(C2.C - C1.C);
+    double a = Angle(C2.O - C1.O);
     double da = acos((C1.r * C1.r + d * d - C2.r * C2.r) / (2 * C1.r * d));
     Point P1 = C1.point(a - da) , P2 = C1.point(a + da);
     sol.push_back(P1);
-    if (P1 == P2) return 1;
+    if (P1 == P2) return 1; //切
     sol.push_back(P2);
     return 2;
 }
@@ -171,7 +177,7 @@ int getCircleCircleIntersection(Circle C1 , Circle C2 , vector<Point>& sol)
 // 过点p到圆C的切线。返回切线条数
 int getTangents(Point P, Circle C, vector<Point>& sol)
 {
-    Point u = C.C - P;
+    Point u = C.O - P;
     double dist = u.len();
     if(dist < C.r) return 0;
     if(dcmp(dist - C.r) == 0)
@@ -185,59 +191,57 @@ int getTangents(Point P, Circle C, vector<Point>& sol)
         return 2;
     }
 }
-
-
-
-
-
-int n , m , ca;
-Point P[100] , Q[100];
-double mx , mn;
-
-void update(Point P , Point A , Point B)
-{
-    mn = min(mn , DistancePointToSegment(P , A , B));
-    mx = max(mx , (P - A).len());
-    mx = max(mx , (P - B).len());
+//两个圆的公切线，对应切点存在ab里面
+int getTangents(Circle A , Circle B , Point* a , Point* b) {
+    int cnt = 0;
+    if (A.r < B.r)
+        swap(A , B) , swap(a , b);
+    double dist = (A.O - B.O).len() , dr = A.r - B.r , sr = A.r + B.r;
+    if (dcmp(dist - dr) < 0) // 内含
+        return 0;
+    double base = Angle(B.O - A.O);
+    if (dcmp(dist) == 0 && dcmp(A.r - B.r) == 0)
+        return -1;//重合
+    if (dcmp(dist - dr) == 0) {//内切
+        a[cnt] = A.point(base);
+        b[cnt] = B.point(base);
+        return 1;
+    }
+    double ang = acos(dr / dist);//非上述情况，两条外公切线
+    a[cnt] = A.point(base + ang) , b[cnt] = B.point(base + ang) , ++ cnt;
+    a[cnt] = A.point(base - ang) , b[cnt] = B.point(base - ang) , ++ cnt;
+    if (dcmp(dist - sr) == 0) {// 外切，中间一条内公切线
+        a[cnt] = A.point(base) , b[cnt] = B.point(pi + base) , ++ cnt;
+    } else if (dcmp(dist - sr) > 0) {
+        ang = acos(sr / dist);//相离，两条内公切线
+        a[cnt] = A.point(base + ang) , b[cnt] = B.point(pi + base + ang) , ++ cnt;
+        a[cnt] = A.point(base - ang) , b[cnt] = B.point(pi + base - ang) , ++ cnt;
+    }
+    return cnt;
 }
-
+int QwQ[6];
+Point a[4] , b[4];
 void work()
 {
-    int i , j;
-    scanf("%d%d",&n,&m);
-    for (i = 0 ; i < n ; ++ i)
-        P[i].input();
-    for (i = 0 ; i < m ; ++ i)
-        Q[i].input();
-    mx = -1e60 , mn = 1e60;
-    double LenA = 0 , LenB = 0;
-    for (i = 0 ; i + 1 < n ; ++ i)
-        LenA += (P[i + 1] - P[i]).len();
-    for (i = 0 ; i + 1 < m ; ++ i)
-        LenB += (Q[i + 1] - Q[i]).len();
-    i = 0 , j = 0;
-    Point Pa = P[0] , Pb = Q[0];
-    while (i < n - 1 && j < m - 1)
-    {
-        double La = (P[i + 1] - Pa).len();
-        double Lb = (Q[j + 1] - Pb).len();
-        double T = min(La / LenA , Lb / LenB);
-        Point Va = (P[i + 1] - Pa) / La * T * LenA;
-        Point Vb = (Q[j + 1] - Pb) / Lb * T * LenB;
-        update(Pa , Pb , Pb + Vb - Va);
-        Pa = Pa + Va;
-        Pb = Pb + Vb;
-        if (Pa == P[i + 1]) ++ i;
-        if (Pb == Q[j + 1]) ++ j;
+    Circle A = Circle(Point(QwQ[0] , QwQ[1]) , QwQ[2]);
+    Circle B = Circle(Point(QwQ[3] , QwQ[4]) , QwQ[5]);
+    vector< pair<Point , Point> > res;
+    int cnt = getTangents(A , B , a , b);
+    printf("%d\n" , cnt);
+    for (int i = 0 ; i < cnt ; ++ i)
+        res.push_back(make_pair(a[i] , b[i]));
+    sort(res.begin() , res.end());
+    for (int i = 0 ; i < cnt ; ++ i) {
+        printf("%f %f %f %f " , res[i].first.x , res[i].first.y , res[i].second.x , res[i].second.y);
+        printf("%f\n" , (res[i].first - res[i].second).len());
     }
-    printf("Case %d: %.0f\n" , ++ ca , mx - mn);
 }
 
 int main()
 {
-    freopen("~input.txt" , "r" , stdin);
-    int _; scanf("%d",&_); while (_ --)
-    //while (scanf("%d",&n) , n)
+    freopen("1.txt" , "r" , stdin);
+    while (scanf("%d%d%d%d%d%d",&QwQ[0],&QwQ[1],&QwQ[2],&QwQ[3],&QwQ[4],&QwQ[5]) , QwQ[2])
         work();
     return 0;
 }
+
