@@ -8,11 +8,11 @@ public class Elevator {
     	Work XX = new Work(Q);
     	OO.start();
     	XX.start();
-    } 
+    }
 }
 
 class Work extends Thread {
-	public Query Q;
+	private Query Q;
 	Work (Query MuQ) {
 		Q = MuQ;
 	}
@@ -25,10 +25,10 @@ class Work extends Thread {
 }
 
 class Schedule extends Thread {
-	public Query Q;
-	public int time = 0;
-	public int floor = 1;
-	public int Dir = 0;
+	private Query Q;
+	private int time = 0;
+	private int floor = 1;
+	private int Dir = 0;
 	Schedule (Query MuQ) {
 		Q = MuQ;
 	}
@@ -65,18 +65,18 @@ class Schedule extends Thread {
 					try {
 						sleep(1000);
 						++ time;
-					} catch (InterruptedException e) {}	
+					} catch (InterruptedException e) {}
 				}
 				floor = Q.n;
-			} 
+			}
 		}
 	}
-	
+
 }
 
 class output{
 	private int floor;
-	public int Dir = 0;
+	private int Dir = 0;
 	output (int F , int D) {
 		floor = F;
 		Dir = D;
@@ -89,11 +89,11 @@ class output{
 			System.out.print("S");
 		else {
 			System.out.print("P");
-			System.out.print(",");	
+			System.out.print(",");
 			if (Dir == -1)
 				System.out.print("DOWN");
 			else
-				System.out.print("UP");		
+				System.out.print("UP");
 		}
 		System.out.println(')');
 	}
@@ -104,25 +104,25 @@ class Query {
 	public int n;
 	public String direct;
 	public int time;
-	
+
 	private boolean available = false;
-	
+
 	public synchronized Query get() {
 		while (available == false) {
-            try {  
-            	wait();       
-            } 
-            catch (InterruptedException e) { }        
+            try {
+            	wait();
+            }
+            catch (InterruptedException e) { }
         }
         available = false;
-        notifyAll(); 
+        notifyAll();
         return this;
 	}
 	public synchronized void put(String str) {
 		while (available == true) {
             try {
-            	wait();   
-            } catch (InterruptedException e) { }        
+            	wait();
+            } catch (InterruptedException e) { }
         }
         int i , j;
 		for (i = 2 ; i < str.length() ; ++ i)
@@ -130,19 +130,19 @@ class Query {
 				break;
 		type = (str.substring(1 , i).equals("F_R"));
 		j = i + 1;
-		for (++ i ; i < str.length() ; ++ i) 
+		for (++ i ; i < str.length() ; ++ i)
 			if (str.charAt(i) == ',')
 				break;
 		n = Integer.parseInt(str.substring(j , i));
 		j = i + 1;
 		if (type) {
-			for (++ i ; i < str.length() ; ++ i) 
+			for (++ i ; i < str.length() ; ++ i)
 				if (str.charAt(i) == ',')
 					break;
 			direct = str.substring(j , i);
 			j = i + 1;
 		}
-		for (++ i ; i < str.length() ; ++ i) 
+		for (++ i ; i < str.length() ; ++ i)
 			if (str.charAt(i) == '}')
 				break;
 		time = Integer.parseInt(str.substring(j , i));
