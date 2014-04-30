@@ -49,8 +49,7 @@ int DFS(int x , int flow = 1 << 30)
 int dinic()
 {
     int ans = 0;
-    while (BFS())
-    {
+    while (BFS()) {
         memcpy(cur , pre , sizeof(cur));
         ans += DFS(s);
     }
