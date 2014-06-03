@@ -12,12 +12,13 @@
 using namespace std;
 typedef long long LL;
 #define N 200005
+#define M 2000005
 int ca;
 int n , m , a[N];
 template <class T> struct Treap {
-    int nodecnt , prior[N];
-    int cnt[N] , size[N] , c[N][2];
-    T key[N] , GCD[N];
+    int nodecnt , prior[M];
+    int cnt[M] , size[M] , c[M][2];
+    T key[M] , GCD[M];
     void clear() {
         nodecnt = 1;
         prior[0] = -1 << 30;
@@ -69,10 +70,18 @@ template <class T> struct Treap {
             erase(c[p][key[p] < w] , w);
         pushup(p);
     }
+    void merge(int& p , int& q) {
+        if (!p) return;
+        merge(c[p][0] , q);
+        merge(c[p][1] , q);
+        insert(q , key[p]);
+        erase(p , key[p]);
+    }
 };
 Treap<int> T;
 int root[N >> 1] , id[N];
-
+int f[N];
+int getf(int x) {return x == f[x] ? x : f[x] = getf(f[x]);}
 void work() {
     printf("Case #%d:\n" , ++ ca);
     int i , j , x , y , z;
@@ -80,11 +89,32 @@ void work() {
     T.clear();
     for (i = 1 ; i <= n ; ++ i) {
         scanf("%d" , &a[i]);
-        root[i] = 0 , id[i] = i;
+        root[i] = 0 , id[i] = i , f[i] = i;
         T.insert(root[i] , a[i]);
     }
     while (m --) {
-        //scanf("%d")
+        scanf("%d" , &j);
+        if (j == 1) {
+            scanf("%d%d",&x,&y);
+            x = getf(id[x]) , y = getf(id[y]);
+            if (T.size[root[x]] > T.size[root[y]])
+                swap(x , y);
+            T.merge(root[x] , root[y]);
+            f[x] = y;
+        }
+        if (j == 2) {
+            scanf("%d%d",&x,&y);
+
+            id[x] = ++ n;
+
+
+            x = getf(id[x]) , y = getf(id[y]);
+            if (T.size[root[x]] > T.size[root[y]])
+                swap(x , y);
+            T.merge(root[x] , root[y]);
+            f[x] = y;
+        }
+
 
 
     }
