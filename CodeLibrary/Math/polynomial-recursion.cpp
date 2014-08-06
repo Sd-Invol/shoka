@@ -7,81 +7,74 @@
 #include <map>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <cmath>
+#include <cassert>
+#include <bitset>
+#include <complex>
 using namespace std;
 typedef long long LL;
-#define N 405
-LL n , Q = 1e9 + 7 ;
-int m , a[N] , K , b[N] , M;
-int d[N] , c[N];
-struct poly {
+
+const int N = 105;
+const int Q = 1e9 + 7;
+LL n ;
+int d[N] , c[N] , t[N] , Deg;
+struct Poly
+{
     int a[N];
-    poly() {
+    Poly() {
         memset(a , 0 , sizeof(a));
     }
     int& operator [] (int x) {
         return a[x];
     }
-}f[N];
+};
 inline void add(int& A , int B) {
     A += B;
     if (A >= Q)
         A -= Q;
 }
-poly operator * (poly x , poly y) {
-    int i , j; poly ans;
-    for (i = 0 ; i < M ; ++ i)
-        for (j = 0 ; j < M ; ++ j)
-            add(ans[i + j] , (LL)x[i] * y[j] % Q);
-    for (i = M ; i < M + M - 1 ; ++ i)
-        for (j = 0 ; j < M ; ++ j)
-            add(ans[j] , (LL)ans[i] * f[i][j] % Q);
+Poly operator * (Poly& X , Poly& Y) {
+    int i , j; Poly ans;
+    for (i = 0 ; i < Deg ; ++ i)
+        for (j = 0 ; j < Deg ; ++ j)
+            add(ans[i + j] , (LL)X[i] * Y[j] % Q);
+    for (i = Deg + Deg - 2 ; i >= Deg ; -- i) {
+        for (j = 1 ; j <= Deg ; ++ j)
+            add(ans[i - j] , (LL)ans[i] * c[j] % Q);
+        ans[i] = 0;
+    }
     return ans;
 }
 
-poly cal(LL k)
-{
-    if (k < M + M - 1)
-        return f[k];
-    poly tmp = cal(k >> 1);
-    if (k & 1)
-        return tmp * tmp * f[1];
-    else
-        return tmp * tmp;
-}
-
-void work()
-{
-    int i , j;
+void work() {
     memset(c , 0 , sizeof(c));
     memset(d , 0 , sizeof(d));
-    memset(f , 0 , sizeof(f));
-    /*  c 为转移关系
-        d 为初值 ， M 为阶数
-        比如下面就是求Fibonacci的例子 */
-    M = 2;
-    d[0] = 1 , d[1] = 1;
-    c[1] = 1 , c[2] = 1;
 
-    for (i = 0 ; i < M ; ++ i) f[i][i] = 1;
-    for (i = 1 ; i <= M ; ++ i)
-        f[M][M - i] = c[i];
-    for (i = M + 1 ; i < M + M - 1 ; ++ i) { //求poly^i 相对初项的线性表示
-        for (j = 0 ; j < M ; ++ j) {
-            if (j) f[i][j] = f[i - 1][j - 1];
-            add(f[i][j] , (LL)f[M][j] * f[i - 1][M - 1] % Q);
-        }
+    Deg = 2;
+    d[0] = 3 , d[1] = 4;
+    c[2] = 1 , c[1] = 2;
+    n = 3;
+    /*  c 为转移关系
+    d 为初值 Deg 为阶数*/
+    //Fi = 2 * Fi-1 + 1 * Fi - 2
+    //F0 = 3 , F1 = 4 , F2 = 11 , F3 = 26...
+    Poly ans , P;
+    P[1] = 1 , ans[0] = 1;
+    while (n) {
+        if (n & 1)
+            ans = ans * P;
+        P = P * P , n >>= 1;
     }
-    poly ans = cal(n);
     int res = 0;
-    for (i = 0 ; i < M ; ++ i)
+    for (int i = 0 ; i < Deg ; ++ i) {
         add(res , (LL)d[i] * ans[i] % Q);
+    }
     printf("%d\n" , res);
 }
 
 int main()
 {
-    while (~scanf("%I64d",&n))
-        work();
+    work();
     return 0;
 }
