@@ -1,16 +1,14 @@
-int S , g[N][N] , lx[N] , ly[N] , match[N] , ans , slack[N];
-int res[N];
+int g[N][N] , lx[N] , ly[N] , match[N] , slack[N];
 bool fx[N] , fy[N];
-
+int L[N] , R[N];
 bool find(int x) {
     fx[x] = 1;
-    for (int y = 1 ; y <= S ; ++ y) {
+    for (int y = 0 ; y < n ; ++ y) {
         if (fy[y]) continue;
         if (lx[x] + ly[y] == g[x][y]) {
             fy[y] = 1;
-            if (!match[y] || find(match[y])) {
+            if (!~match[y] || find(match[y])) {
                 match[y] = x;
-                res[x] = y;
                 return 1;
             }
         } else {
@@ -19,34 +17,39 @@ bool find(int x) {
     }
     return 0;
 }
-
 void update() {
-    int delta = 1 << 30 , i;
-    for (i = 1 ; i <= S ; ++ i)
+    int delta = 1 << 30;
+    for (int i = 0 ; i < n ; ++ i)
         if (!fy[i])
             delta = min(delta , slack[i]);
-    for (i = 1 ; i <= S ; ++ i) {
+    for (int i = 0 ; i < n ; ++ i) {
         if (fx[i]) lx[i] -= delta;
-        if (fy[i]) ly[i] += delta;
-        slack[i] -= delta;
+        if (fy[i])
+            ly[i] += delta;
+        else
+            slack[i] -= delta;
     }
 }
-
-void Kuhn_Munkras() {
-    int i , j;
-    for (i = 1 ; i <= S ; ++ i) {
-        match[i] = lx[i] = ly[i] = 0;
-        for (j = 1 ; j <= S ; ++ j)
+int Kuhn_Munkras() {
+    for (int i = 0 ; i < n ; ++ i) {
+        match[i] = -1 , lx[i] = ly[i] = 0;
+        for (int j = 0 ; j < n ; ++ j) {
             lx[i] = max(lx[i] , g[i][j]);
-    }
-    for (i = 1 ; i <= S ; ++ i) {
-        while (1) {
-            for (j = 1 ; j <= S ; ++ j)
-                fx[j] = fy[j] = 0 , slack[j] = 1 << 30;
-            if (find(i))
-                break;
-            else
-                update();
         }
     }
+    for (int i = 0 ; i < n ; ++ i) {
+        for (int j = 0 ; j < n ; ++ j)
+            slack[j] = 1 << 30;
+        while (1) {
+            for (int j = 0 ; j < n ; ++ j)
+                fx[j] = fy[j] = 0;
+            if (find(i))
+                break;            
+            update();
+        }
+    }
+    int ans = 0;
+    for (int i = 0 ; i < n ; ++ i)
+        ans += g[match[i]][i];
+    return ans;
 }
