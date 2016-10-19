@@ -1,4 +1,5 @@
 #include <vector>
+#include <cmath>
 #include <sstream>
 #include <cstring>
 #include <cassert>
@@ -9,26 +10,35 @@ typedef long long LL;
 const int _N = 1e8;
 const int GQ = 1e9 + 7;
 
-bool f[_N];
+bool _f[_N + 1];
 vector<int> getPrime(int N) {
-  memset(f , 0 , sizeof(f));
+  memset(_f , 0 , sizeof(_f));
+  _f[0] = _f[1] = 1;
   vector<int> prime;
   for (int i = 2 ; i <= N ; ++ i) {
-    if (!f[i]) {
+    if (!_f[i]) {
       prime.push_back(i);
     }
     for (auto &y : prime) {
       int x = y * i;
       if (x > N) break;
-      f[x] = 1;
+      _f[x] = 1;
       if (i % y == 0) break;
     }
   }
   return prime;
 }
+bool isPrime(LL x) {
+  for (int i = 2 ; (LL)i * i <= x ; ++ i) {
+    if (x % i == 0) {
+      return 0;
+    }
+  }
+  return 1;
+}
 
-vector<int> factorize(LL x) {
-  vector<int> factor;
+vector<LL> factorize(LL x) {
+  vector<LL> factor;
   for (int i = 2 ; (LL)i * i <= x ; ++ i) {
     while (x % i == 0) {
       x /= i;
@@ -41,22 +51,37 @@ vector<int> factorize(LL x) {
   return factor;
 }
 
-int power(int A , int B , int Q = GQ) {
+LL power(LL A , LL B , LL Q = GQ) {
   int res = 1;
   while (B) {
     if (B & 1) {
-      res = (LL)res * A % Q;
+      res = res * A % Q;
     }
-    A = (LL)A * A % Q;
+    A = A * A % Q;
+    B >>= 1;
   }
   return res;
 }
+LL getPhi(LL x) {
+  LL y = x;
+  for (int i = 2 ; (LL)i * i <= x ; ++ i) {
+    if (x % i == 0) {
+      y /= i , y *= i - 1;
+      while (x % i == 0) {
+        x /= i;
+      }
+    }
+  }
+  if (x > 1) y /= x , y *= x - 1;
+  return y;
+}
+
 
 int inverse(int x , int Q = GQ) {
   return x == 1 ? 1 : (LL)(Q - Q / x) * inverse(Q % x , Q) % Q;
 }
 
-void exgcd(int x , int y , int& a , int& b) {
+template<typename T> void exgcd(T x , T y , T& a , T& b) {
   if (y == 0) {
     a = 1 , b = 0;
   } else {
@@ -65,10 +90,10 @@ void exgcd(int x , int y , int& a , int& b) {
   }
 }
 
-int modinverse(int x , int Q) {
-  int a , b;
+template<typename T> T modinverse(T x , T Q) {
+  T a , b;
   exgcd(x , Q , a , b);
-  assert((LL)a * x + (LL)b * Q == 1);
+  //assert((LL)a * x + (LL)b * Q == 1);
   return (a % Q + Q) % Q;
 }
 
@@ -90,6 +115,22 @@ pair<LL , LL> mergemodulo(pair<LL , LL> A , pair<LL , LL> B) {
     return make_pair(mod , rest);
   }
 }
+
+void print(__int128 x) {
+    if (x < 0) {
+        putchar('-');
+        print(-x);
+    }
+    if (x > 9) {
+        print(x / 10);
+    }
+    putchar(x % 10 + '0');
+}
+
+ostream& operator << (ostream& output, const __int128& v) {
+  print(v);
+  return output;
+};
 
 
 template <typename T> string print_array(const vector<T> &V) {
