@@ -11,6 +11,8 @@ const int _N = 1e8;
 const int GQ = 1e9 + 7;
 
 bool _f[_N + 1];
+int minifac[_N];
+
 vector<int> getPrime(int N) {
   memset(_f , 0 , sizeof(_f));
   _f[0] = _f[1] = 1;
@@ -18,11 +20,14 @@ vector<int> getPrime(int N) {
   for (int i = 2 ; i <= N ; ++ i) {
     if (!_f[i]) {
       prime.push_back(i);
+      minifac[i] = i;
     }
     for (auto &y : prime) {
       int x = y * i;
-      if (x > N) break;
+      if (x > N)
+        break;
       _f[x] = 1;
+      minifac[x] = y;
       if (i % y == 0) break;
     }
   }
@@ -36,7 +41,6 @@ bool isPrime(LL x) {
   }
   return 1;
 }
-
 vector<LL> factorize(LL x) {
   vector<LL> factor;
   for (int i = 2 ; (LL)i * i <= x ; ++ i) {
@@ -50,14 +54,45 @@ vector<LL> factorize(LL x) {
   }
   return factor;
 }
-
-LL power(LL A , LL B , LL Q = GQ) {
-  int res = 1;
+inline LL mul_mod(LL a, LL b, LL mod) {
+  return (__int128)a * b % mod;
+}
+LL powerLL(LL A, LL B, LL Q = GQ) {
+  LL res = 1;
   while (B) {
     if (B & 1) {
-      res = res * A % Q;
+      res = mul_mod(res , A , Q);
     }
-    A = A * A % Q;
+    A = mul_mod(A , A , Q);
+    B >>= 1;
+  }
+  return res;
+}
+bool miller_rabin(LL n) {
+  if (n <= 1) return false;
+  if (n <= 3) return true;
+  if (~n & 1) return false;
+  const int u[] = {2,3,5,7,325,9375,28178,450775,9780504,1795265022,0};
+  LL e = n - 1, a, c = 0; // 原理：http://miller-rabin.appspot.com/
+  while (~e & 1) e >>= 1, ++c;
+  for (int i = 0; u[i]; ++i) {
+    if (n <= u[i]) return true;
+    a = powerLL(u[i], e, n);
+    if (a == 1) continue;
+    for (int j = 1; a != n - 1; ++j) {
+      if (j == c) return false;
+      a = mul_mod(a, a, n);
+    }
+  }
+  return true;
+}
+template<typename T> T power(T A , T B , T Q = GQ) {
+  T res = 1;
+  while (B) {
+    if (B & 1) {
+      res = (LL)res * A % Q;
+    }
+    A = (LL)A * A % Q;
     B >>= 1;
   }
   return res;
@@ -75,18 +110,44 @@ LL getPhi(LL x) {
   if (x > 1) y /= x , y *= x - 1;
   return y;
 }
-
+int getPermitiveRoot(int p) {
+    int phi = p - 1;// phi(p);
+    vector<int> prime;
+    int x = phi;
+    assert(x > 1 && minifac[x]);
+    while (x > 1) {
+      if (prime.empty() || minifac[x] != prime.back()) {
+        prime.push_back(minifac[x]);
+      }
+      x /= minifac[x];
+    }
+    int g = 2;
+    while (g < p) {
+        bool flag = 1;
+        for (int i = 0 ; i < prime.size() ; ++ i)
+            if (power(g , phi / prime[i] , p) == 1) {
+                flag = 0;
+                break;
+            }
+        if (flag)
+            return g;
+        ++ g;
+    }
+    return -1;
+}
 
 int inverse(int x , int Q = GQ) {
   return x == 1 ? 1 : (LL)(Q - Q / x) * inverse(Q % x , Q) % Q;
 }
 
-template<typename T> void exgcd(T x , T y , T& a , T& b) {
+template<typename T> int exgcd(T x , T y , T& a , T& b) {
   if (y == 0) {
     a = 1 , b = 0;
+    return x;
   } else {
-    exgcd(y , x % y , b , a);
+    int d = exgcd(y , x % y , b , a);
     b -= (x / y) * a;
+    return d;
   }
 }
 
@@ -117,14 +178,14 @@ pair<LL , LL> mergemodulo(pair<LL , LL> A , pair<LL , LL> B) {
 }
 
 void print(__int128 x) {
-    if (x < 0) {
-        putchar('-');
-        print(-x);
-    }
-    if (x > 9) {
-        print(x / 10);
-    }
-    putchar(x % 10 + '0');
+  if (x < 0) {
+    putchar('-');
+    print(-x);
+  }
+  if (x > 9) {
+    print(x / 10);
+  }
+  putchar(x % 10 + '0');
 }
 
 ostream& operator << (ostream& output, const __int128& v) {
