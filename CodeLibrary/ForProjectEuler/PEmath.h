@@ -218,3 +218,26 @@ template <typename T1, typename T2> ostream& operator << (ostream& output, const
   cout << print_pair(v);
   return output;
 };
+
+template<typename T> struct Fraction {
+  T x , y;
+  Fraction (T _x = 0 , T _y = 1) {
+    T z = abs(__gcd(_x , _y));
+    x = _x / z , y = _y / z;
+  }
+  Fraction operator + (const Fraction &R) const {
+    return Fraction(x * R.y + y * R.x , y * R.y);
+  }
+  Fraction operator - (const Fraction &R) const {
+    return Fraction(x * R.y - y * R.x , y * R.y);
+  }
+  Fraction operator * (const Fraction &R) const {
+    return Fraction(x * R.x , y * R.y);
+  }
+  bool operator < (const Fraction &R) const {
+    return x * R.y < y * R.x;
+  }
+  bool operator == (const Fraction &R) const {
+    return x == R.x && y == R.y;
+  }
+};
