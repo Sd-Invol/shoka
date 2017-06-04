@@ -29,6 +29,27 @@ void buildsa(char *s , int n , int m) {
         height[Rank[i]] = k;
     }
 }
+
+int lcp[18][N] , LOG[N];
+void initLCP(int n) {
+    for (int i = 2 ; i <= n ; ++ i) {
+        LOG[i] = LOG[i >> 1] + 1;
+    }
+    for (int i = 0 ; i < n ; ++ i) {
+        lcp[0][i] = height[i];
+    }
+    for (int j = 1 ; 1 << j < n ; ++ j) {
+        for (int i = 0 ; i + (1 << j) <= n ; ++ i) {
+            lcp[j][i] = min(lcp[j - 1][i] , lcp[j - 1][i + (1 << j - 1)]);
+        }
+    }
+}
+inline int LCP(int x , int y) {
+    x = Rank[x] , y = Rank[y];
+    if (x > y) swap(x , y); ++ x;
+    int j = LOG[y - x + 1];
+    return min(lcp[j][x] , lcp[j][y - (1 << j) + 1]);
+}
 /******Suffix array for Trie *****/
 int f[18][N] , s[N] , dep[N];
 int sa[N] , t1[N] , t2[N] , c[N];

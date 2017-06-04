@@ -66,14 +66,10 @@ void getarea() { // 计算圆并的重心，必要的时候可以去除有包含
             if (R < 0) R += 2 * pi;
             if (L >= 2 * pi) L -= 2 * pi;
             if (R >= 2 * pi) R -= 2 * pi;
-            if (L < R) {
-                Vec.push_back({L , 1});
-                Vec.push_back({R , -1});
-            } else {
-                Vec.push_back({0 , 1});
-                Vec.push_back({R , -1});
-                Vec.push_back({L , 1});
-                Vec.push_back({2 * pi , -1});
+            Vec.push_back({L , 1});
+            Vec.push_back({R , -1});
+            if (L >= R) {
+                ++ cnt;
             }
         }
         sort(Vec.begin() , Vec.end());

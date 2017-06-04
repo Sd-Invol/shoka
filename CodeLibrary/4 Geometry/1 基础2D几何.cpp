@@ -5,44 +5,43 @@ inline int dcmp(double x) {
 
 struct Point {
     double x , y;
-    Point (double x = 0 , double y = 0) : x(x) , y(y) {} 
+    Point (double x = 0 , double y = 0) : x(x) , y(y) {}
     void input() {
         scanf("%lf%lf",&x,&y);
     }
-    bool operator < (const Point& R) const{
+    bool operator < (const Point& R) const {
         if (dcmp(x - R.x) == 0)
             return dcmp(y - R.y) < 0;
         return dcmp(x - R.x) < 0;
     }
-    bool operator == (const Point& R) const{
+    bool operator == (const Point& R) const {
         return dcmp(x - R.x) == 0 && dcmp(y - R.y) == 0;
     }
-    Point operator + (const Point& R) const{
+    Point operator + (const Point& R) const {
         return Point(x + R.x , y + R.y);
     }
-    Point operator - (const Point& R) const{
+    Point operator - (const Point& R) const {
         return Point(x - R.x , y - R.y);
     }
-    Point operator * (const double& R) const{
+    Point operator * (const double& R) const {
         return Point(x * R , y * R);
     }
-    Point operator / (const double& R) const{
+    Point operator / (const double& R) const {
         return Point(x / R , y / R);
     }
-    double operator ^ (const Point& R) const{
+    double operator ^ (const Point& R) const {
         return x * R.y - y * R.x;
     }
-    double operator % (const Point& R) const{
+    double operator % (const Point& R) const {
         return x * R.x + y * R.y;
     }
     double len() {
         return sqrt(*this % *this);
     }
+    double angle() {
+        return atan2(y , x);
+    }
 };
-// 向量的极角，[-pi,pi)
-double Angle(Point V) {
-    return atan2(V.y , V.x);
-}
 // 两个向量的夹角，不分正负[0,pi)
 double Angle(Point A , Point B) {
     return acos((A % B) / A.len() / B.len());
@@ -83,10 +82,15 @@ Point GetLineProjection(Point P , Point A , Point B) {
     Point v = B - A;
     return A + v * (v % (P - A) / (v % v));
 }
-// 判断线段是否相交，没有考虑共线的情况。
+// 判断线段是否严格相交。
 bool SegmentProperIntersection(Point a1 , Point a2 , Point b1 , Point b2) {
     double c1 = (a2 - a1) ^ (b1 - a1);
     double c2 = (a2 - a1) ^ (b2 - a1);
+    if (dcmp(c1) == 0 && dcmp(c2) == 0) {
+        if (a2 < a1) swap(a1 , a2);
+        if (b2 < b1) swap(b1 , b2);
+        return max(a1 , b1) < min(a2 , b2);
+    }
     double c3 = (b2 - b1) ^ (a1 - b1);
     double c4 = (b2 - b1) ^ (a2 - b1);
     return dcmp(c1) * dcmp(c2) < 0 && dcmp(c3) * dcmp(c4) < 0;

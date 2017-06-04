@@ -19,7 +19,7 @@ bool Dijkstra() {
         if (w > d[x]) continue;
         if (x == S) {
             for (int i = 0 ; i <= T ; ++ i) {
-                h[i] += d[i];
+                h[i] = min(h[i] + d[i] , INF);
             }
             return 1;
         }

@@ -19,15 +19,24 @@ void ConnectHE(int x , int anc) {
         if (e[i].x != Fa[x] && e[i].x != heavy[x])
             ConnectHE(e[i].x , e[i].x);
 }
-int query(int x , int y) { 
+int query(int x , int y) {
     int ans = -1 << 30;
     while (Top[x] != Top[y]) {
         if (dep[Top[x]] < dep[Top[y]])
-            swap(x , y); 
+            swap(x , y);
         ans = max(ans , query(1 , n , tid[Top[x]] , tid[x]));
         x = Fa[Top[x]];
     }
     if (dep[x] > dep[y]) swap(x , y);
     ans = max(ans , query(1 , n , tid[x] , tid[y]));
     return ans; //如果权在边上就不考虑左边的点了
+}
+int LCA(int x , int y) {
+    while (Top[x] != Top[y]) {
+        if (dep[Top[x]] < dep[Top[y]])
+            swap(x , y);
+        x = Fa[Top[x]];
+    }
+    if (dep[x] > dep[y]) swap(x , y);
+    return x;
 }

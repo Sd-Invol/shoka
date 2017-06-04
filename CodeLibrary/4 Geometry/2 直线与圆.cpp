@@ -9,7 +9,7 @@ struct Line {
     bool operator < (const Line& R) const {
         return angle < R.angle;
     }
-    Point point(double t){
+    Point point(double t) {
         return P + V * t;
     }
 };
@@ -17,15 +17,14 @@ struct Circle {
     Point O;
     double r;
     Circle () {}
-    Circle (Point _O , double _r) {O = _O , r = _r;}
+    Circle (Point _O , double _r) {
+        O = _O , r = _r;
+    }
     Point point(double arc) {
         return Point(O.x + cos(arc) * r , O.y + sin(arc) * r);
     }
     void input() {
         O.input() , scanf("%lf",&r);
-    }
-    void print() {
-        printf("(%f,%f,%f)\n" , O.x + eps , O.y + eps , r + eps);
     }
 };
 
@@ -34,7 +33,8 @@ struct Circle {
 // t1,t2为两个参数，sol为点集。有了参数，射线线段什么的也很方便
 int getLineCircleIntersection(Line L , Circle C , double& t1 , double& t2 , vector<Point>& sol) {
     double a = L.V.x , b = L.P.x - C.O.x , c = L.V.y , d = L.P.y - C.O.y;
-    double e = a * a + c * c , f = 2 * (a * b + c * d) , g = b * b + d * d - C.r * C.r;
+    double e = a * a + c * c , f = 2 * (a * b + c * d);
+    double g = b * b + d * d - C.r * C.r;
     double delta = f * f - 4 * e * g;
     if (dcmp(delta) < 0) return 0;
     if (dcmp(delta) == 0) {
@@ -51,20 +51,20 @@ int getLineCircleIntersection(Line L , Circle C , double& t1 , double& t2 , vect
 // 内含，内切，相交，重合，外切，相离
 int getCircleCircleIntersection(Circle C1 , Circle C2 , vector<Point>& sol) {
     double d = (C1.O - C2.O).len();
-    if (dcmp(d) == 0) { //同心   
+    if (dcmp(d) == 0) { //同心
         if (dcmp(C1.r - C2.r) == 0)//重合
             return -1;
         return 0;//内含
     }
     if (dcmp(C1.r + C2.r - d) < 0) return 0;//相离
-    if (dcmp(fabs(C1.r - C2.r) - d) > 0) return 0;//内含 
-    double a = Angle(C2.O - C1.O); // acos内可能越界
+    if (dcmp(fabs(C1.r - C2.r) - d) > 0) return 0;//内含
+    double a = (C2.O - C1.O).angle();
     double p = (C1.r * C1.r + d * d - C2.r * C2.r) / (2 * C1.r * d);
     p = max(-1.0 , min(1.0 , p));
     double da = acos(p);
     Point P1 = C1.point(a - da) , P2 = C1.point(a + da);
     sol.push_back(P1);
-    if (P1 == P2) return 1; //切
+    if (dcmp(da) == 0) return 1; //切
     sol.push_back(P2);
     return 2;
 }
@@ -72,9 +72,9 @@ int getCircleCircleIntersection(Circle C1 , Circle C2 , vector<Point>& sol) {
 int getTangents(Point P, Circle C, vector<Point>& sol) {
     Point u = C.O - P;
     double dist = u.len();
-    if(dist < C.r) return 0;// 园内
-    if(dcmp(dist - C.r) == 0) {// p在圆上，只有一条切线
-        sol.push_back(Rotate(u, pi/2));
+    if(dist < C.r) return 0;
+    if(dcmp(dist - C.r) == 0) {
+        sol.push_back(Rotate(u, pi / 2));
         return 1;
     } else {
         double ang = asin(C.r / dist);
@@ -86,12 +86,11 @@ int getTangents(Point P, Circle C, vector<Point>& sol) {
 //两个圆的公切线，对应切点存在ab里面
 int getTangents(Circle A , Circle B , Point* a , Point* b) {
     int cnt = 0;
-    if (A.r < B.r)
-        swap(A , B) , swap(a , b);
+    if (A.r < B.r) swap(A , B) , swap(a , b);
     double dist = (A.O - B.O).len() , dr = A.r - B.r , sr = A.r + B.r;
     if (dcmp(dist - dr) < 0) // 内含
         return 0;
-    double base = Angle(B.O - A.O);
+    double base = (B.O - A.O).angle();
     if (dcmp(dist) == 0 && dcmp(A.r - B.r) == 0)
         return -1;//重合
     if (dcmp(dist - dr) == 0) {//内切
