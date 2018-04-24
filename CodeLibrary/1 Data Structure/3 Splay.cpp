@@ -1,162 +1,209 @@
-const int N = 500005;
+#include <bits/stdc++.h>
+using namespace std;
+const int N = 100005;
+const int INF = 1 << 30;
+
+struct Node *null;
+
 struct Node {
-    Node *ch[2] , *p;
+    Node *ch[2] , *fa;
     int size;
-    int val , sum , lm , rm , sm;
-    int same;
     bool rev;
-    Node () {
-        size = val = sum = 0;
-        lm = rm = sm = -1e9;
-        same = 1 << 30 , rev = 0;
+
+    int val;
+    int delta;
+    int same;
+    pair<int , int> mx[2];
+    Node (int v = 0) {
+        fa = ch[0] = ch[1] = null;
+        size = 1;
+
+        rev = 0;
+
+        mx[0] = make_pair(v , 1);
+        mx[1] = make_pair(-INF , 0);
+        val = v;
+        delta = 0;
+        same = INF;
     }
-    bool d() {
-        return this == p->ch[1];
+
+    inline bool d() {
+        return this == fa->ch[1];
     }
-    void setc(Node *c , int d) {
-        ch[d] = c;
-        c -> p = this;
+    inline bool isroot() {
+        return fa == null || fa->ch[0] != this && fa->ch[1] != this;
     }
-    void setsame(int x) {
-        same = val = x;
-        sum = val * size;
-        lm = rm = sm = max(val , sum);
+
+    void add(int v) {
+        if (this == null) return;
+        if (same != INF) same += v;
+        delta += v;
+        val += v;
+        mx[0].first += v;
+        mx[1].first += v;
+    }
+    void assign(int v) {
+        if (this == null) return;
+        same = val = v;
+        delta = 0;
+        mx[0] = make_pair(v , size);
+        mx[1] = make_pair(-INF , 0);
     }
     void reverse() {
+        if (this == null) return;
         rev ^= 1;
         swap(ch[0] , ch[1]);
-        swap(lm , rm);
     }
-    void pushdown();
-    void pushup() {
-        size = ch[0] -> size + ch[1] -> size + 1;
-        sum = ch[0] -> sum + val + ch[1] -> sum;
-        lm = max(ch[0] -> lm , max(ch[0] -> sum + val , ch[0] -> sum + val + ch[1] -> lm));
-        rm = max(ch[1] -> rm , max(ch[1] -> sum + val , ch[1] -> sum + val + ch[0] -> rm));
-        sm = max(val , max(ch[0] -> sm , ch[1] -> sm));
-        sm = max(sm , max(ch[0]->rm , ch[1]->lm) + val);
-        sm = max(sm , ch[0]->rm + val + ch[1]->lm);
-    }
-}Tnull , *null = &Tnull;
-Node mem[N] , *C = mem;
-Node* rub[N];
-int rubsize;
-void Node::pushdown() {
-    if (rev) {
-        if (ch[0] != null)
+
+    void pushdown() {
+        if (this == null) return;
+        if (rev) {
             ch[0]->reverse();
-        if (ch[1] != null)
             ch[1]->reverse();
-        rev ^= 1;
-    }
-    if (same != 1 << 30) {
-        if (ch[0] != null)
-            ch[0]->setsame(same);
-        if (ch[1] != null)
-            ch[1]->setsame(same);
-        same = 1 << 30;
-    }
-}
-Node* newnode(int v) {
-    Node *p = rubsize ? rub[-- rubsize] : C ++;
-    p->ch[0] = p->ch[1] = p->p = null;
-    p->size = 1;
-    p->val = p->sum = p->lm = p->rm = p->sm = v;
-    p->same = 1 << 30 , p->rev = 0;
-    return p;
-}
-void rotate(Node *t) {
-    Node *p = t->p;
-    int d = t->d();
-    p->p->setc(t , p->d());
-    p->setc(t->ch[!d] , d);
-    t->setc(p , !d);
-    p->pushup();
-}
-void update(Node *t) {
-    static Node* Stack[N];
-    int top = 0;
-    while (t != null) {
-        Stack[top ++] = t;
-        t = t->p;
-    }
-    for (int i = top - 1 ; i >= 0 ; -- i)
-        Stack[i]->pushdown();
-}
-void splay(Node *t , Node *f = null) {
-    update(t);
-    while (t->p != f) {
-        if (t->p->p == f)
-            rotate(t);
-        else {
-            if (t->d() == t->p->d())
-                rotate(t->p) , rotate(t);
-            else
-                rotate(t) , rotate(t);
+            rev ^= 1;
+        }
+        if (delta) {
+            ch[0]->add(delta);
+            ch[1]->add(delta);
+            delta = 0;
+        }
+        if (same != INF) {
+            ch[0]->assign(same);
+            ch[1]->assign(same);
+            same = INF;
         }
     }
-    t->pushup();
-}
-Node* select(Node *t , int k) {
-    while (1) {
-        t->pushdown();
-        int c = 1 + t->ch[0]->size;
-        if (k == c)
-            return t;
-        if (k > c)
-            k -= c , t = t->ch[1];
-        else
-            t = t->ch[0];
+
+    void pushup() {
+        if (this == null) return;
+        size = ch[0]->size + 1 + ch[1]->size;
+        int j = 0 , k = 0 , l = 0;
+        for (int i = 0 ; i < 2 ; ++ i) {
+            int x = max(ch[0]->mx[j].first , ch[1]->mx[l].first) , y = 0;
+            if (k < 1) x = max(x , val);
+            if (x == ch[0]->mx[j].first) y += ch[0]->mx[j ++].second;
+            if (k < 1 && x == val) ++ y , ++ k;
+            if (x == ch[1]->mx[l].first) y += ch[1]->mx[l ++].second;
+            mx[i] = make_pair(x , y);
+        }
     }
-}
-void split(Node *p , Node *&x , Node *&y , int K) {
-    if (K == 0) {
-        x = null , y = p;
-    } if (K == p->size) {
-        x = p , y = null;
-    } else {
-        y = select(p , K + 1);
-        splay(y);
-        x = y->ch[0];
-        y->ch[0] = x->p = null;
-        y->pushup();
+
+    void setc(Node *c , int d) {
+        ch[d] = c;
+        c->fa = this;
+        pushup();
     }
-}
-void merge(Node *&p , Node *x , Node *y) {
-    if (x == null)
-        p = y;
-    else if (y == null)
-        p = x;
-    else {
-        x->pushdown();
-        p = select(x , x->size);
-        splay(p);
-        p->setc(y , 1);
-        p->pushup();
+
+    void rot() {
+        Node *f = fa, *ff = fa->fa;
+        int c = d(), cc = fa->d();
+        f->setc(ch[c ^ 1],c);
+        this->setc(f,c ^ 1);
+        if (ff->ch[cc] == f) ff->setc(this,cc);
+        else this->fa = ff;
     }
+
+    void D() {
+        if (!isroot()) fa->D();
+        pushdown();
+    }
+
+    Node* splay() {
+        D();
+        while (!isroot()) {
+            if (!fa->isroot()) {
+                d() == fa->d() ? fa->rot() : rot();
+            }
+            rot();
+        }
+        return this;
+    }
+
+    Node *access() {
+        for (Node *p = this,*q = null; p != null; ) {
+            p->splay();
+            p->setc(q,1);
+            q = p;
+            p = p->fa;
+        }
+        return splay();
+    }
+};
+
+int n , m;
+Node pool[N], *node[N], *alloc;
+
+void setroot(Node *x) {
+    x->access()->reverse();
 }
-int n , m , a[N];
-Node* build(int l , int r) {
-    if (l > r)
-        return null;
-    int mid = l + r >> 1;
-    Node *t = newnode(a[mid]);
-    t->setc(build(l , mid - 1) , 0);
-    t->setc(build(mid + 1 , r) , 1);
-    t->pushup();
-    return t;
+void link(Node *x , Node *y) {
+    setroot(x);
+    x->fa = y;
+    x->access();
 }
-void del(Node *p) {
-    if (p == null)
-        return;
-    rub[rubsize ++] = p;
-    del(p->ch[0]);
-    del(p->ch[1]);
+void cut(Node *x , Node *y) {
+    setroot(x);
+    y->access();
+    x->splay();
+    x->setc(null , 1);
+    y->fa = null;
 }
-int main() {
+
+void work() {
+    alloc = pool;
+    null = new(alloc ++) Node();
+    null->fa = null->ch[0] = null->ch[1] = null;
+    null->val = -INF;
+    null->mx[0] = null->mx[1] = make_pair(-INF , 0);
+
+    null->size = 0;
+
+    static int ca = 0;
+    printf("Case #%d:\n" , ++ ca);
     scanf("%d%d" , &n , &m);
-    for (int i = 1 ; i <= n ; ++ i)
-        scanf("%d" , &a[i]);
-    Node *root = build(1 , n);
-    return 0;
+    for (int i = 1 ; i <= n ; ++ i) {
+        int v;
+        scanf("%d" , &v);
+        node[i] = new(alloc ++) Node(v);
+    }
+    for (int i = 1 ; i < n ; ++ i) {
+        int x , y;
+        scanf("%d%d" , &x , &y);
+        link(node[x] , node[y]);
+    }
+    while (m --) {
+        int o , x , y , v;
+        scanf("%d%d%d" , &o , &x , &y);
+        if (o == 1) {
+            cut(node[x] , node[y]);
+            scanf("%d%d" , &x , &y);
+            link(node[x] , node[y]);
+        } else {
+            setroot(node[x]);
+            node[y]->access();
+            if (o == 2) {
+                scanf("%d" , &v);
+                node[y]->assign(v);
+            } else if (o == 3) {
+                scanf("%d" , &v);
+                node[y]->add(v);
+            } else {
+                if (!node[y]->mx[1].second) {
+                    puts("ALL SAME");
+                } else {
+                    printf("%d %d\n" , node[y]->mx[1].first, node[y]->mx[1].second);
+                }
+            }
+
+        }
+
+    }
+}
+
+int main() {
+    int T;
+    scanf("%d" , &T);
+    while (T --) {
+        work();
+    }
 }

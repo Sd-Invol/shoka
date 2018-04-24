@@ -27,11 +27,11 @@ Point GetLineIntersection(Line A , Line B) {
 }
 Point p[N];
 Line q[N];
-int HalfPlaneIntersection(Line* L , int n , Point* Poly) {
-    sort(L , L + n);
+vector<Point> HalfPlaneIntersection(Line* L , int nL) {
+    sort(L , L + nL);
     int top = 0 , bot = 0;
     q[0] = L[0];
-    for (int i = 1 ; i < n ; ++ i) {
+    for (int i = 1 ; i < nL ; ++ i) {
         while (top < bot && !Onleft(L[i] , p[bot - 1])) -- bot;
         while (top < bot && !Onleft(L[i] , p[top])) ++ top;
         q[++ bot] = L[i];
@@ -44,9 +44,9 @@ int HalfPlaneIntersection(Line* L , int n , Point* Poly) {
             p[bot - 1] = GetLineIntersection(q[bot - 1] , q[bot]);
     }
     while (top < bot && !Onleft(q[top] , p[bot - 1])) -- bot;
-    if (bot - top <= 1) return 0;
+    if (bot - top <= 1) return vector<Point>();
     p[bot] = GetLineIntersection(q[bot] , q[top]);
-    int m = 0;
-    for (int i = top ; i <= bot ; ++ i) Poly[m ++] = p[i];
-    return m;
+    vector<Point> Poly;
+    for (int i = top ; i <= bot ; ++ i) Poly.emplace_back(p[i]);
+    return Poly;
 }
