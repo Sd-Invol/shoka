@@ -32,10 +32,10 @@ for (int i = 0 , j = 0 ; i < n || j < m ; ) {
     Vec.push_back(make_pair(cur , 1));
 }
 /******* 点在凸多边形内判定 O(logn) *******/
-bool InConvex(Point q) {
-    if (OnLeft(q , p[0] , p[1]) < 0 || OnLeft(q , p[0] , p[n - 1]) > 0)
+bool InConvex(Point q, const Point *p , int np) {
+    if (OnLeft(q , p[0] , p[1]) < 0 || OnLeft(q , p[0] , p[np - 1]) > 0)
         return 0;
-    int l = 2 , r = n - 1;
+    int l = 2 , r = np - 1;
     while (l < r) {
         int mid = l + r >> 1;
         if (OnLeft(q , p[0] , p[mid]) <= 0) {
@@ -47,69 +47,32 @@ bool InConvex(Point q) {
     return OnLeft(q , p[r - 1] , p[r]) >= 0;
 }
 /******* 点到凸多边形的切线 O(logn) *******/
-#define above(b , c) (OnLeft(b , q , c) > 0)
-#define below(b , c) (OnLeft(b , q , c) < 0)
-int getRtangent(Point q) { // find max
-    int ret = 0;
-    int l = 1 , r = n - 1;
-    while (l <= r) {
-        int dnl = above(p[l] , p[l + 1]);
-        int mid = l + r >> 1;
-        int dnm = above(p[mid] , p[mid + 1]);
-        if (dnm) {
-            if (above(p[mid], p[ret])) {
-                ret = mid;
-            }
-        }
-        if (dnl) {
-            if (above(p[l], p[ret])) {
-                ret = l;
-            }
-            if (dnm && above(p[mid] , p[l])) {
-                r = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        } else {
-            if (!dnm && above(p[mid] , p[l])) {
-                l = mid + 1;
-            } else {
-                r = mid - 1;
-            }
-        }
+int GetExtremeVertex(const Point *p, int np, auto direction) {
+    int left = 0, leftSgn;
+    auto vertexCmp = [&p, direction](int i, int j) {
+        return dcmp((p[j] - p[i]) ^ (direction(p[j])));
+    };
+    auto isExtreme = [np, vertexCmp](int i, int& iSgn) {
+        iSgn = vertexCmp((i + 1) % np, i);
+        return iSgn >= 0 && vertexCmp(i, (i + np - 1) % np) < 0;
+    };
+    for (int right = isExtreme(0, leftSgn) ? 1 : np; left + 1 < right;) {
+        int middle = (left + right) / 2, middleSgn;
+        if (isExtreme(middle, middleSgn)) return middle;
+        if (leftSgn != middleSgn ? leftSgn < middleSgn
+            : leftSgn == vertexCmp(left, middle)) right = middle;
+        else left = middle, leftSgn = middleSgn;
     }
-    return ret;
+    return left;
 }
-int getLtangent(Point q) { // find min
-    int ret = 0;
-    int l = 1 , r = n - 1;
-    while (l <= r) {
-        int dnl = below(p[l] , p[l - 1]);
-        int mid = l + r + 1 >> 1;
-        int dnm = below(p[mid] , p[mid - 1]);
-        if (dnm) {
-            if (below(p[mid], p[ret])) {
-                ret = mid;
-            }
-        }
-        if (dnl) {
-            if (below(p[l], p[ret])) {
-                ret = l;
-            }
-            if (dnm && below(p[mid] , p[l])) {
-                l = mid + 1;
-            } else {
-                r = mid - 1;
-            }
-        } else {
-            if (!dnm && below(p[mid] , p[l])) {
-                r = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        }
-    }
-    return ret;
+pair<int, int> TangentsConvex(const Point& P, const Point *p , int np) {
+    int l = GetExtremeVertex(p, np, [&P](const Point& q) {
+            return q - P;
+        });
+    int r = GetExtremeVertex(p, np, [&P](const Point& q) {
+            return P - q;
+        });
+    return make_pair(l , r);
 }
 /****** 直线对凸多边形的交点 O(logn) ******/
 double arc[N] , sum[N];
