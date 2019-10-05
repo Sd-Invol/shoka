@@ -7,7 +7,7 @@ void addarc(int x ,int y ,int z) {
     e[mcnt] = (arc) {x , 0 , pre[y]} , pre[y] = mcnt ++;
 }
 int d[N] , cur[N] , q[N];
-bool BFS() {
+bool bfs() {
     memset(d , -1 , sizeof(d));
     int top = 0 , bot = -1;
     q[++ bot] = t , d[t] = 1;
@@ -23,11 +23,11 @@ bool BFS() {
     }
     return 0;
 }
-int DFS(int x , int flow = 1 << 30) {
+int dfs(int x , int flow = 1 << 30) {
     if (x == t || !flow) return flow;
-    int sum = 0 , u;
+    int sum = 0;
     for (int& i = cur[x] ; ~i ; i = e[i].next) {
-        int y = e[i].x;
+        int y = e[i].x, u;
         if (d[x] == d[y] + 1 && (u = DFS(y , min(flow , e[i].f)))) {
             e[i].f -= u , e[i ^ 1].f += u;
             sum += u , flow -= u;
@@ -39,9 +39,9 @@ int DFS(int x , int flow = 1 << 30) {
 }
 int dinic() {
     int ans = 0;
-    while (BFS()) {
+    while (bfs()) {
         memcpy(cur , pre , sizeof(cur));
-        ans += DFS(s);
+        ans += dfs(s);
     }
     return ans;
 }

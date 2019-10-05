@@ -2,26 +2,35 @@ int ncnt , scnt , bel[N] , low[N] , dfn[N];
 int f[N];
 stack<int> S;
 void dfs(int x) {
-    int i , y;
     low[x] = dfn[x] = ++ ncnt;
-    f[x] = 1 , S.push(x);
-    for (i = pre[x] ; ~i ; i = e[i].next) {
-        y = e[i].x;
+    f[x] = 1;
+    S.push(x);
+    for (int i = pre[x] ; ~i ; i = e[i].next) {
+        int y = e[i].x;
         if (!dfn[y]) {
             dfs(y);
             low[x] = min(low[x] , low[y]);
-        } else if (f[y])
+        } else if (f[y]) {
             low[x] = min(low[x] , dfn[y]);
+        }
     }
     if (low[x] == dfn[x]) {
-        val[scnt] = 0;
         do {
-            i = S.top() , S.pop() , f[i] = 0;
-            bel[i] = scnt , val[scnt] += v[i];
-        }while (i != x);
+            int i = S.top();
+            S.pop();
+            f[i] = 0;
+            bel[i] = scnt;
+        } while (i != x);
         ++ scnt;
     }
 }
+
+memset(dfn , 0 , sizeof(dfn));
+ncnt = scnt = 0;
+for (int i = 1 ; i <= n ; ++ i) {
+    !dfn[i] && dfs(i;
+}
+                    
 /***********************************************/
 int dfn[N] , low[N] , ncnt;
 stack<int> S;
