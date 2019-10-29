@@ -6,7 +6,7 @@ void buildsa(int *s , int n , int m) {
     for (int i = 0 ; i < n ; ++ i) ++ c[x[i] = s[i]];
     for (int i = 1 ; i < m ; ++ i) c[i] += c[i - 1];
     for (int i = n - 1 ; i >= 0 ; -- i) sa[-- c[x[i]]] = i;
-    for (int k = 1 , p = 0 ; p < n ; k <<= 1, m = p, p = 0) {
+    for (int k = 1 , p = 0 ; k < n && p < n ; k <<= 1, m = p, p = 0) {
         for (int i = n - k ; i < n ; ++ i) y[p ++] = i;
         for (int i = 0 ; i < n ; ++ i) if (sa[i] >= k) y[p ++] = sa[i] - k;
         memset(c , 0 , m << 2);
@@ -69,7 +69,7 @@ void buildsa(int *s , int n , int m) {
     for (int i = 1 ; i <= n ; ++ i) ++ c[x[i] = s[i]];
     for (int i = 1 ; i <= m ; ++ i) c[i] += c[i - 1];
     for (int i = n ; i >= 1 ; -- i) sa[c[x[i]] --] = i;
-    for (int k = 1, j = 0, p = 0; p < n ; k <<= 1, ++ j, m = p) {
+    for (int k = 1, j = 0, p = 0; k < n && p < n ; k <<= 1, ++ j, m = p) {
         memset(c , 0 , m + 1 << 2);
         for (int i = 1 ; i <= n ; ++ i) Rank[j][i] = x[i];
         for (int i = 1 ; i <= n ; ++ i) ++ c[x[f[j][i]]];
