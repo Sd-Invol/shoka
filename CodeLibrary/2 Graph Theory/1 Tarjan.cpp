@@ -59,7 +59,8 @@ void dfs(int x, int fa) {
         int j;
         do {
           j = S.top(), S.pop();
-          if (tmp[e[j].x] != n) E[m++] = make_pair(n, e[j].x), tmp[e[j].x] = n;
+          if (tmp[e[j].x] != n)
+            E[m++] = make_pair(n, e[j].x), tmp[e[j].x] = n;
           if (tmp[e[j ^ 1].x] != n)
             E[m++] = make_pair(n, e[j ^ 1].x), tmp[e[j ^ 1].x] = n;
           bel[j >> 1] = n;
