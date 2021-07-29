@@ -74,6 +74,30 @@ pair<int, int> TangentsConvex(const Point& P, const Point *p , int np) {
         });
     return make_pair(l , r);
 }
+// Binary lifting, should be equivalent with TangentsConvex.
+pair<int, int> tangentsConvex(const Point& P, const Point *p , int np) {
+  int left = 0, right = 0;
+  for (int k = 20 ; k >= 0 ; -- k) {
+    int delta = (1 << k) % np;
+    if (OnLeft(P, p[left], p[(left + delta) % np]) <= 0) {
+      left += delta;
+      left %= np;
+    }
+    if (OnLeft(P, p[left], p[(left + np - delta) % np]) <= 0) {
+      left += np - delta;
+      left %= np;
+    }
+    if (OnLeft(P, p[right], p[(right + delta) % np]) >= 0) {
+      right += delta;
+      right %= np;
+    }
+    if (OnLeft(P, p[right], p[(right + np - delta) % np]) >= 0) {
+      right += np - delta;
+      right %= np;
+    }
+  }
+  return make_pair(left , right);
+}
 /****** 直线对凸多边形的交点 O(logn) ******/
 double arc[N] , sum[N];
 void init() {
