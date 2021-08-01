@@ -1,15 +1,20 @@
-int n, cost[N][N];
-int lx[N], ly[N], match[N], slack[N], prev[N];
+int n;
+using Type = int;
+const Type INF = 1LL << 60;
+
+Type cost[N][N], lx[N], ly[N], slack[N];
+int prev[N], match[N];
 bool vy[N];
 
 void augment(int root) {
-  fill(vy + 1, vy + n + 1, false);
-  fill(slack + 1, slack + n + 1, INF);
+  std::fill(vy + 1, vy + n + 1, false);
+  std::fill(slack + 1, slack + n + 1, INF);
   int py;
   match[py = 0] = root;
   do {
     vy[py] = true;
-    int x = match[py], delta = INF, yy;
+    int x = match[py], yy = 0;
+    Type delta = INF;
     for (int y = 1; y <= n; y++) {
       if (!vy[y]) {
         if (lx[x] + ly[y] - cost[x][y] < slack[y]) {
@@ -41,7 +46,7 @@ void augment(int root) {
 
 int KM() {
   for (int i = 1; i <= n; i++) {
-    lx[i] = ly[i] = 0;
+    lx[i] = ly[i] = -INF;
     match[i] = -1;
     for (int j = 1; j <= n; j++) {
       lx[i] = std::max(lx[i], cost[i][j]);
