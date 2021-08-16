@@ -47,7 +47,7 @@ bool InConvex(Point q, const Point *p , int np) {
     return OnLeft(q , p[r - 1] , p[r]) >= 0;
 }
 /******* 点到凸多边形的切线 O(logn) *******/
-int GetExtremeVertex(const Point *p, int np, auto direction) {
+int GetExtremeVertex(const Point *p, int np, std::function<Point(Point)> direction) {
     int left = 0, leftSgn;
     auto vertexCmp = [&p, direction](int i, int j) {
         return dcmp((p[j] - p[i]) ^ (direction(p[j])));
