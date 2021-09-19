@@ -1,4 +1,4 @@
-template <typename F, typename C, bool WithNegaiveCost = false,
+template <typename F, typename C, bool WithNegativeCost = false,
           int maxN = 1 << 15, int maxM = 1 << 22>
 struct CostFlow {
   int source, sink, pre[maxN], cur[maxN], mcnt;
@@ -60,7 +60,8 @@ struct CostFlow {
       found |= (x == source);
       for (int i = pre[x]; ~i; i = e[i].next) {
         int y = e[i].x;
-        if (e[i ^ 1].f && d[x] + e[i ^ 1].c + h[x] - h[y] < d[y]) {
+        C z = e[i ^ 1].c + h[x] - h[y];
+        if (e[i ^ 1].f && d[x] + z < d[y]) {
           d[y] = d[x] + z;
           pq.push(std::make_pair(-d[y], y));
         }
@@ -98,20 +99,18 @@ struct CostFlow {
   }
   std::pair<F, C> MincostMaxflow(F limit = std::numeric_limits<F>::max()) {
     memset(vis, 0, sizeof(vis));
-    if constexpr (WithNegaiveCost) {
+    if constexpr (WithNegativeCost) {
       BellmanFord();
     } else {
-      memset(h, 0, sizeof(h));
+      Dijkstra();
     }
-    F maxflow = 0, delta;
+    F maxflow = 0;
     C ans = 0;
     do {
-      do {
-        memcpy(cur, pre, sizeof(cur));
-        delta = augment(source, limit - maxflow);
-        maxflow += delta;
-        ans += delta * h[source];
-      } while (delta > 0);
+      memcpy(cur, pre, sizeof(cur));
+      F delta = augment(source, limit - maxflow);
+      maxflow += delta;
+      ans += delta * h[source];
     } while (maxflow < limit && Dijkstra());
     return {maxflow, ans};
   }
