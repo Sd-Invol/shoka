@@ -1,86 +1,120 @@
-int n, m, source, sink, pre[N], mcnt, cur[N], d[N], h[N];
-bool f[N];
-int maxflow, ans;
-struct arc {
-  int x, f, c, next;
-} e[M];
-
-void addarc(int x, int y, int z, int c) {
-  e[mcnt] = (arc){y, z, c, pre[x]}, pre[x] = mcnt++;
-  e[mcnt] = (arc){x, 0, -c, pre[y]}, pre[y] = mcnt++;
-}
-
-bool Dijkstra() {
-  priority_queue<pair<int, int> > pq;
-  memset(d, 0x3f, sizeof(d));
-  pq.push(make_pair(-(d[sink] = 0), sink));
-  while (!pq.empty()) {
-    int x = pq.top().second;
-    int w = -pq.top().first;
-    pq.pop();
-    if (w > d[x])
-      continue;
-    for (int i = pre[x]; ~i; i = e[i].next) {
-      int y = e[i].x, z = e[i ^ 1].c + h[x] - h[y];
-      if (e[i ^ 1].f && d[x] + z < d[y]) {
-        d[y] = d[x] + z;
-        pq.push(make_pair(-d[y], y));
-      }
-    }
+template <typename F, typename C, bool WithNegaiveCost = false,
+          int maxN = 1 << 15, int maxM = 1 << 22>
+struct CostFlow {
+  int source, sink, pre[maxN], cur[maxN], mcnt;
+  C d[maxN], h[maxN];
+  bool vis[maxN];
+  struct arc {
+    int x;
+    F f;
+    C c;
+    int next;
+  } e[maxM];
+  void init() {
+    memset(pre, -1, sizeof(pre));
+    mcnt = 0;
   }
-  return d[source] != 0x3f3f3f3f;
-}
-int dfs(int x, int flow = 1 << 30) {
-  if (x == sink) {
-    maxflow += flow;
-    ans += h[source] * flow;
-    return flow;
+  void addarc(int x, int y, F z, C c) {
+    e[mcnt] = (arc){y, z, c, pre[x]}, pre[x] = mcnt++;
+    e[mcnt] = (arc){x, 0, -c, pre[y]}, pre[y] = mcnt++;
   }
-  f[x] = 1;
-  int sum = 0;
-  for (int &i = cur[x]; ~i; i = e[i].next) {
-    int y = e[i].x;
-    if (e[i].f && !f[y] && h[x] == e[i].c + h[y]) {
-      int u = dfs(y, min(flow, e[i].f));
-      e[i].f -= u, e[i ^ 1].f += u;
-      flow -= u, sum += u;
-      if (!flow)
-        break;
-    }
-  }
-  f[x] = 0;
-  return sum;
-}
-void MincostMaxflow() {
-  // memset(h , 0 , sizeof(h));
-  queue<int> Q;
-  memset(f, 0, sizeof(f));
-  memset(h, 0x3f, sizeof(h));
-  h[sink] = 0, f[sink] = 1, Q.push(sink);
-  while (!Q.empty()) {
-    int x = Q.front();
-    Q.pop(), f[x] = 0;
-    for (int i = pre[x]; ~i; i = e[i].next) {
-      int y = e[i].x, z = e[i ^ 1].c;
-      if (e[i ^ 1].f && h[y] > h[x] + z) {
-        h[y] = h[x] + z;
-        if (!f[y]) {
-          Q.push(y);
-          f[y] = 1;
+  bool BellmanFord() {
+    std::queue<int> q;
+    memset(h, 0x3f, sizeof(h));
+    h[sink] = 0;
+    vis[sink] = 1;
+    q.push(sink);
+    bool found = false;
+    while (!q.empty()) {
+      int x = q.front();
+      q.pop();
+      vis[x] = false;
+      found |= (x == source);
+      for (int i = pre[x]; ~i; i = e[i].next) {
+        int y = e[i].x;
+        C z = e[i ^ 1].c;
+        if (e[i ^ 1].f && h[y] > h[x] + z) {
+          h[y] = h[x] + z;
+          if (!vis[y]) {
+            q.push(y);
+            vis[y] = true;
+          }
         }
       }
     }
+    return found;
   }
-  maxflow = 0, ans = 0;
-  while (Dijkstra()) {
-    for (int i = 0; i <= n; ++i) {
-      if (d[i] != 0x3f3f3f3f) {
-        h[i] += d[i];
+  bool Dijkstra() {
+    std::priority_queue<std::pair<C, int>> pq;
+    memset(d, 0x3f, sizeof(d));
+    pq.push(std::make_pair(-(d[sink] = 0), sink));
+    bool found = false;
+    std::vector<int> que;
+    while (!pq.empty()) {
+      auto [w, x] = pq.top();
+      pq.pop();
+      if (-w > d[x]) {
+        continue;
+      }
+      que.push_back(x);
+      found |= (x == source);
+      for (int i = pre[x]; ~i; i = e[i].next) {
+        int y = e[i].x;
+        if (e[i ^ 1].f && d[x] + e[i ^ 1].c + h[x] - h[y] < d[y]) {
+          d[y] = d[x] + z;
+          pq.push(std::make_pair(-d[y], y));
+        }
       }
     }
-    do {
-      fill(f, f + n + 1, 0);
-      copy(pre, pre + n + 1, cur);
-    } while (dfs(source));
+    if (!found) {
+      return false;
+    }
+    for (auto &x : que) {
+      h[x] += d[x];
+    }
+    return true;
   }
-}
+  F augment(int x, F flow) {
+    if (x == sink) {
+      return flow;
+    }
+    vis[x] = 1;
+    F sum = 0;
+    for (int &i = cur[x]; ~i; i = e[i].next) {
+      int y = e[i].x;
+      if (e[i].f && !vis[y] && h[x] == e[i].c + h[y]) {
+        F u = augment(y, std::min(flow, e[i].f));
+        e[i].f -= u;
+        e[i ^ 1].f += u;
+        flow -= u;
+        sum += u;
+        if (!flow) {
+          break;
+        }
+      }
+    }
+    vis[x] = 0;
+    return sum;
+  }
+  std::pair<F, C> MincostMaxflow(F limit = std::numeric_limits<F>::max()) {
+    memset(vis, 0, sizeof(vis));
+    if constexpr (WithNegaiveCost) {
+      BellmanFord();
+    } else {
+      memset(h, 0, sizeof(h));
+    }
+    F maxflow = 0, delta;
+    C ans = 0;
+    do {
+      do {
+        memcpy(cur, pre, sizeof(cur));
+        delta = augment(source, limit - maxflow);
+        maxflow += delta;
+        ans += delta * h[source];
+      } while (delta > 0);
+    } while (maxflow < limit && Dijkstra());
+    return {maxflow, ans};
+  }
+};
+
+CostFlow<int, int, false> G;
