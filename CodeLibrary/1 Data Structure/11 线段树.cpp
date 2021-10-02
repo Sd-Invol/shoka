@@ -59,7 +59,7 @@ Node query(int l, int r, int top, int bot) {
     if (bot <= mid) {
       return query(Left, top, bot);
     }
-    if (bot > mid) {
+    if (top > mid) {
       return query(Right, top, bot);
     }
     return merge(query(Left, top, bot), query(Right, top, bot));
