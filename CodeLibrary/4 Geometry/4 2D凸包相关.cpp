@@ -22,6 +22,7 @@ if (n > 1)
 Vec.clear();
 Point cur = a[0] + b[0];
 for (int i = 0 , j = 0 ; i < n || j < m ; ) {
+    Vec.push_back(cur);
     if (i < n && (j == m || ((a[i + 1] - a[i]) ^ (b[j + 1] - b[j])) >= 0)) {
         cur = cur + a[i + 1] - a[i];
         ++ i;
@@ -29,7 +30,6 @@ for (int i = 0 , j = 0 ; i < n || j < m ; ) {
         cur = cur + b[j + 1] - b[j];
         ++ j;
     }
-    Vec.push_back(make_pair(cur , 1));
 }
 /******* 点在凸多边形内判定 O(logn) *******/
 bool InConvex(Point q, const Point *p , int np) {
