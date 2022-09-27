@@ -149,12 +149,8 @@ void FWT(int a[] , int len , int oper) {
         for (int i = 0 ; i < len ; ++ i) {
             if (~i >> k & 1) {
                 int j = i ^ (1 << k);
-                int x = (a[i] + Q - a[j]) % Q;
-                int y = (a[i] + a[j]) % Q;
-                if (oper == -1) {
-                    x = (Q - x) % Q;
-                    swap(x , y);
-                }
+                int x = (a[i] + a[j]) % Q;
+                int y = (a[i] + Q - a[j]) % Q;
                 a[i] = x;
                 a[j] = y;
             }
