@@ -35,7 +35,7 @@ bool MillerRabin(uint64 n) {  // O(7log^2n)
     return true;
   };
   for (uint64 a : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
-    if (check(a)) {
+    if (a % n && check(a % n)) {
       return false;
     }
   }
