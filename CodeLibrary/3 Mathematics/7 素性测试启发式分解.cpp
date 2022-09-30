@@ -26,11 +26,11 @@ bool MillerRabin(uint64 n) {  // O(7log^2n)
     if (x == 1 || x == n - 1) {
       return false;
     }
-    for (int i = 0; i < s; ++i) {
+    for (int i = 1; i < s; ++i) {
+      x = (uint128)x * x % n;
       if (x == n - 1) {
         return false;
       }
-      x = (uint128)x * x % n;
     }
     return true;
   };
