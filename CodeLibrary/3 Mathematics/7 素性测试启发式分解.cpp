@@ -1,71 +1,77 @@
-inline LL mod_mul(LL a , LL b , LL Q){
-    return (a * b - (LL)((long double)a * b / Q) * Q) % Q;
-}
-inline LL myrand() {
-    return rand() << 30 | rand();
-}
-LL mod_exp(LL a , LL x , LL n) {
-    LL ret = 1;
-    while(x) {
-        if(x & 1)
-            ret = mod_mul(ret , a , n);
-        a = mod_mul(a , a , n) , x >>= 1;
+using uint64 = unsigned long long;
+using uint128 = __uint128_t;
+
+uint64 mod_exp(uint64 a, uint64 x, uint64 n) {
+  uint64 ret = 1;
+  while (x) {
+    if (x & 1) {
+      ret = (uint128)ret * a % n;
     }
-    return ret;
+    a = (uint128)a * a % n;
+    x >>= 1;
+  }
+  return ret;
 }
-bool Rabin_Miller(LL n) { //素性测试
-    LL k = 0 , i , j , m , a;
-    if (n < 2) return 0;
-    if (n == 2) return 1;
-    if (~n & 1) return 0;
-    m = n - 1;
-    while(~m & 1)
-        m >>= 1 , ++ k;
-    for(i = 0 ; i < 20; ++ i) {
-        a = myrand() % (n - 2) + 2;
-        a = mod_exp(a , m , n);
-        if (a == 1)
-            continue;
-        for (j = 0 ; j < k ; ++ j) {
-            if (a == n - 1)
-                break;
-            a = mod_mul(a , a , n);
-        }
-        if (j < k)
-            continue;
-        return 0;
+bool MillerRabin(uint64 n) {  // O(7log^2n)
+  if (n < 2 || n % 2 == 0) {
+    return n == 2;
+  }
+  uint64 d = n - 1, s = 0;
+  while (d % 2 == 0) {
+    d >>= 1;
+    ++s;
+  }
+  auto check = [&](uint128 a) {
+    uint64 x = mod_exp(a, d, n);
+    if (x == 1 || x == n - 1) {
+      return false;
     }
-    return 1;
-}
-inline LL func(LL x , LL n) {
-    return (mod_mul(x , x , n) + 1) % n;
-}
-LL Pollard(LL n) { //启发式分解
-    LL i , x , y , p;
-    if (Rabin_Miller(n))
-        return n;
-    if(~n & 1)
-        return 2;
-    for(i = 1 ; i < 20 ; ++ i) {
-        x = i;
-        y = func(x , n);
-        p = __gcd(y - x , n);
-        while(p == 1) {
-            x = func(x , n);
-            y = func(func(y , n) , n);
-            p = __gcd((y - x + n) % n , n) % n;
-        }
-        if(p == 0 || p == n)
-            continue;
-        return p;
+    for (int i = 0; i < s; ++i) {
+      if (x == n - 1) {
+        return false;
+      }
+      x = (uint128)x * x % n;
     }
-}
-void factor(LL n , vector<int>& ans) {
-    LL x = Pollard(n);
-    if(x == n) {
-        ans.push_back(x);
-        return;
+    return true;
+  };
+  for (uint64 a : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
+    if (check(a)) {
+      return false;
     }
-    factor(x , ans);
-    factor(n / x , ans);
+  }
+  return true;
+}
+uint64 Pollard(uint64 n) {
+  if (n % 2 == 0) {
+    return 2;
+  }
+  if (MillerRabin(n)) {
+    return n;
+  }
+  auto f = [n](uint64 x) { return ((uint128)x * x + 1) % n; };
+  int i = 0;
+  while (true) {
+    uint64 x = i++, y = f(x), p = std::gcd(y - x, n);
+    while (p == 1) {
+      x = f(x);
+      y = f(f(y));
+      p = std::gcd(y - x + n, n);
+    }
+    if (p == 0 || p == n) {
+      continue;
+    }
+    return p;
+  }
+}
+std::vector<uint64> factorize(uint64 n) {
+  if (n == 1) {
+    return {};
+  }
+  uint64 x = Pollard(n);
+  if (x == n) {
+    return {x};
+  }
+  auto A = factorize(x), B = factorize(n / x);
+  A.insert(A.end(), B.begin(), B.end());
+  return A;
 }
