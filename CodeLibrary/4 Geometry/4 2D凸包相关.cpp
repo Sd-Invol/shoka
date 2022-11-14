@@ -1,35 +1,47 @@
 inline LL OnLeft(Point P , Point A , Point B) {
     return (B - A) ^ (P - A);
 }
-/********* Naive 凸包 2.0 O(n+m) *********/
-int top = 0;
-for (int i = 0 ; i < n ; ++ i) {
-    while (top > 1 && OnLeft(p[i] , s[top - 2] , s[top - 1]) <= 0) {
-        -- top;
+/********* Convex *********/
+typedef std::vector<Point> Polygon;
+Polygon convex(std::vector<Point>& p) {
+  std::sort(p.begin(), p.end());
+  Polygon s;
+  for (int i = 0; i < p.size(); ++i) {
+    while (s.size() > 1 &&
+           OnLeft(p[i], s[s.size() - 2], s[s.size() - 1]) <= 0) {
+      s.pop_back();
     }
-    s[top ++] = p[i];
-}
-int tmp = top;
-for (int i = n - 2 ; i >= 0 ; -- i) {
-    while (top > tmp && OnLeft(p[i] , s[top - 2] , s[top - 1]) <= 0) {
-        -- top;
+    s.emplace_back(p[i]);
+  }
+  int tmp = s.size();
+  for (int i = (int)p.size() - 2; i >= 0; --i) {
+    while (s.size() > tmp &&
+           OnLeft(p[i], s[s.size() - 2], s[s.size() - 1]) <= 0) {
+      s.pop_back();
     }
-    s[top ++] = p[i];
+    s.emplace_back(p[i]);
+  }
+  if (p.size() > 1) {
+    s.pop_back();
+  }
+  return s;
 }
-if (n > 1)
-    -- top;
 /********* Minkowski-Sum O(n+m) *********/
-Vec.clear();
-Point cur = a[0] + b[0];
-for (int i = 0 , j = 0 ; i < n || j < m ; ) {
-    Vec.push_back(cur);
-    if (i < n && (j == m || ((a[i + 1] - a[i]) ^ (b[j + 1] - b[j])) >= 0)) {
-        cur = cur + a[i + 1] - a[i];
-        ++ i;
-    } else {
-        cur = cur + b[j + 1] - b[j];
-        ++ j;
-    }
+typedef std::vector<Point> Polygon;
+Polygon operator+(Polygon a, Polygon b) {
+  Polygon res; // Assert a[0]/b[0] is the lowest point
+  int n = a.size(), m = b.size();
+  a.emplace_back(a[0]);
+  a.emplace_back(a[1]);
+  b.emplace_back(b[0]);
+  b.emplace_back(b[1]);
+  for (int i = 0, j = 0; i < n || j < m;) {
+    res.push_back(a[i] + b[j]);
+    int64 cross = (a[i + 1] - a[i]) ^ (b[j + 1] - b[j]);
+    i += (i < n && cross >= 0);
+    j += (j < m && cross <= 0);
+  }
+  return res;
 }
 /******* 点在凸多边形内判定 O(logn) *******/
 bool InConvex(Point q, const Point *p , int np) {
