@@ -47,25 +47,28 @@ int64 Lagrange(const std::vector<int64>& a, int64 u, int P, int e = 1) {
 /******************************************/
 // 特殊的，一个K阶多项式已知前K+1项求第n项 O(Klogn)
 // 例: 求前n个自然数的K次方和，多项式是K+1阶
-scanf("%d%d", &n, &K);
-for (int i = 1; i <= K + 1; ++i) {
-  f[i] = (f[i - 1] + power(i, K)) % Q;
+int Lagrange(const std::vector<int>& f, int k) {
+  int n = (int)f.size() - 1;
+  if (k <= n) {
+    return f[k];
+  }
+  int cur = 1;
+  for (int i = 1 ; i <= n ; ++ i) {
+    cur = 1LL * cur * (k - i) % Q * inverse(Q - i) % Q;
+  }
+  int res = 1LL * cur * f[0] % Q;
+  for (int i = 0 ; i < n ; ++ i) {
+    cur = 1LL * cur * (Q + i - n) % Q * inverse(i + 1) % Q;
+    cur = 1LL * cur * (k - i) % Q * inverse(k - i - 1) % Q;
+    res = (res + 1LL * cur * f[i + 1]) % Q;
+  }
+  return res;
 }
-if (n <= K + 1) {
-  printf("%d\n", f[n]);
-  return;
+// \sum_{i=1}^{n} i^K
+int sumOfPower(int n, int K) { 
+  std::vector<int> f(K + 2);
+  for (int i = 1; i <= K + 1; ++i) {
+    f[i] = (f[i - 1] + power(i, K)) % Q;
+  }
+  return Lagrange(f, n);
 }
-int A = 1, B = 1;
-for (int i = 0; i <= K + 1; ++i)
-  A = (LL)A * (n - i) % Q;
-for (int i = 1; i <= K + 1; ++i)
-  B = (LL)B * (Q - i) % Q;
-int res = 0;
-for (int i = 0; i <= K + 1; ++i) {
-  int C = (LL)A * inverse((LL)(n - i) * B % Q) % Q;
-  res += (LL)f[i] * C % Q, res %= Q;
-  if (i == K + 1)
-    break;
-  B = (LL)B * (i + 1) % Q * inverse(Q - (K + 1 - i)) % Q;
-}
-printf("%d\n", res);
