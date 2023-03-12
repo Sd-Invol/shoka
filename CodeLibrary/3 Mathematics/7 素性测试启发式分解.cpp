@@ -48,8 +48,8 @@ uint64 Pollard(uint64 n) {
   if (MillerRabin(n)) {
     return n;
   }
-  auto f = [n](uint64 x) { return ((uint128)x * x + 1) % n; };
   int i = 0;
+  auto f = [&](uint64 x) { return ((uint128)x * x + i) % n; };
   while (true) {
     uint64 x = i++, y = f(x), p = std::gcd(y - x, n);
     while (p == 1) {
