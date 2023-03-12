@@ -50,7 +50,7 @@ void FFT(Complex P[], int n, int oper) {
 
 /**  FFT mod 1e9 + 7, three mods with CRT by NTT */
 const int Q = 1e9 + 7;
-int power(int A, int B, int QQ = Q) {
+constexpr int power(int A, int B, int QQ = Q) {
   int res = 1;
   while (B) {
     if (B & 1) {
