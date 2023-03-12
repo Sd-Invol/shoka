@@ -49,9 +49,7 @@ void FFT(Complex P[], int n, int oper) {
 }
 
 /**  FFT mod 1e9 + 7, three mods with CRT by NTT */
-const int N = 1 << 20;
 const int Q = 1e9 + 7;
-
 int power(int A, int B, int QQ = Q) {
   int res = 1;
   while (B) {
@@ -71,19 +69,14 @@ inline int add(int A, int B, int mod) {
   return A + B >= mod ? A + B - mod : A + B;
 }
 
-int rev[N];
-void FFTperpare(int n) {
-  int LN = __builtin_ctz(n);
-  for (int i = 0; i < n; ++i) {
-    rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (LN - 1));
-  }
-}
-template <int mod>
+template <const int mod>
 void FFT(std::vector<int> &P, int oper) {
   int n = P.size();
-  for (int i = 0; i < n; i++) {
-    if (i < rev[i]) {
-      std::swap(P[i], P[rev[i]]);
+  for (int i = 1, j = 0; i < n - 1; i++) {
+    for (int s = n; j ^= s >>= 1, ~j & s;)
+      ;
+    if (i < j) {
+      std::swap(P[i], P[j]);
     }
   }
   for (int d = 0; (1 << d) < n; d++) {
@@ -94,18 +87,18 @@ void FFT(std::vector<int> &P, int oper) {
     }
     for (int i = 0; i < n; i += m2) {
       int unit = 1;
-      for (int j = 0; j < m; j++) {
-        int &a = P[i + j + m], &b = P[i + j];
-        int t = 1LL * unit * a % mod;
-        a = add(b, mod - t, mod);
-        b = add(b, t, mod);
+      auto a = P.begin() + i + m, b = P.begin() + i;
+      for (int j = 0; j < m; j++, ++a, ++b) {
+        int t = 1LL * unit * *a % mod;
+        *a = add(*b, mod - t, mod);
+        *b = add(*b, t, mod);
         unit = 1LL * unit * unit_p0 % mod;
       }
     }
   }
 }
 
-template <int mod>
+template <const int mod>
 std::vector<int> convolution(const std::vector<int> &a,
                              const std::vector<int> &b) {
   int len = ceil_pow2(a.size() + b.size() - 1);
@@ -131,9 +124,8 @@ const int64 pq = 1LL * M3 * M2;
 const int i0 = power(M3 % M2, M2 - 2, M2);
 const int i1 = power(pq % M1, M1 - 2, M1);
 
-std::vector<int> convolution(const std::vector<int>& a, const std::vector<int>& b) {
-  int len = ceil_pow2(a.size() + b.size() - 1);
-  FFTperpare(len);
+std::vector<int> convolutionll(const std::vector<int> &a,
+                               const std::vector<int> &b) {
   std::vector<int> _c0 = convolution<M1>(a, b);
   std::vector<int> _c1 = convolution<M2>(a, b);
   std::vector<int> _c2 = convolution<M3>(a, b);
