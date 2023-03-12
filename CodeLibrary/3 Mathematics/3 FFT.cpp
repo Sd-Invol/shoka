@@ -49,7 +49,10 @@ void FFT(Complex P[], int n, int oper) {
 }
 
 /**  FFT mod 1e9 + 7, three mods with CRT by NTT */
-constexpr int power(int A, int B, int QQ = Q) {
+const int N = 1 << 20;
+const int Q = 1e9 + 7;
+
+int power(int A, int B, int QQ = Q) {
   int res = 1;
   while (B) {
     if (B & 1) {
@@ -60,11 +63,24 @@ constexpr int power(int A, int B, int QQ = Q) {
   }
   return res;
 }
+inline int ceil_pow2(unsigned x) {
+  assert(x > 0);
+  return 1 << (32 - __builtin_clz(x - 1));
+}
 inline int add(int A, int B, int mod) {
   return A + B >= mod ? A + B - mod : A + B;
 }
-template <int mod, int root>
-void FFT(int P[], int n, int oper) {
+
+int rev[N];
+void FFTperpare(int n) {
+  int LN = __builtin_ctz(n);
+  for (int i = 0; i < n; ++i) {
+    rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (LN - 1));
+  }
+}
+template <int mod>
+void FFT(std::vector<int> &P, int oper) {
+  int n = P.size();
   for (int i = 0; i < n; i++) {
     if (i < rev[i]) {
       std::swap(P[i], P[rev[i]]);
@@ -72,63 +88,63 @@ void FFT(int P[], int n, int oper) {
   }
   for (int d = 0; (1 << d) < n; d++) {
     int m = 1 << d, m2 = m << 1;
-    int unit_p0 = power(root, (mod - 1) >> (d + 1), mod);
+    int unit_p0 = power(3, (mod - 1) >> (d + 1), mod);
     if (oper == -1) {
       unit_p0 = power(unit_p0, mod - 2, mod);
     }
     for (int i = 0; i < n; i += m2) {
-      int unit = 1, *a = P + i + m, *b = P + i;
+      int unit = 1;
       for (int j = 0; j < m; j++) {
-        int t = 1LL * unit * *a % mod;
-        *a = add(*b, mod - t, mod);
-        *b = add(*b, t, mod);
+        int &a = P[i + j + m], &b = P[i + j];
+        int t = 1LL * unit * a % mod;
+        a = add(b, mod - t, mod);
+        b = add(b, t, mod);
         unit = 1LL * unit * unit_p0 % mod;
-        ++a, ++b;
       }
     }
   }
 }
 
-int _a[N], _b[N];
-template <int mod, int root = 3>
-void convolution(int *a, int *b, int len, int *res) {
-  for (int i = 0; i < len; ++i) {
-    _a[i] = a[i] % mod;
-    _b[i] = b[i] % mod;
-  }
-  FFT<mod, root>(_a, len, 1);
-  FFT<mod, root>(_b, len, 1);
+template <int mod>
+std::vector<int> convolution(const std::vector<int> &a,
+                             const std::vector<int> &b) {
+  int len = ceil_pow2(a.size() + b.size() - 1);
+  std::vector<int> _a = a, _b = b;
+  _a.resize(len);
+  _b.resize(len);
+  FFT<mod>(_a, 1);
+  FFT<mod>(_b, 1);
   int inv = power(len, mod - 2, mod);
-  for (int i = 0; i < len; ++i) {
+  std::vector<int> res(len);
+  for (int i = 0; i < res.size(); ++i) {
     res[i] = 1LL * _a[i] * _b[i] % mod * inv % mod;
   }
-  FFT<mod, root>(res, len, -1);
+  FFT<mod>(res, -1);
+  res.resize(a.size() + b.size() - 1);
+  return res;
 }
 
-const int M1 = 167772161;
-const int M2 = 469762049;
-const int M3 = 754974721;
+static const int M1 = 167772161;
+static const int M2 = 998244353;
+static const int M3 = 1004535809;
 const int64 pq = 1LL * M3 * M2;
 const int i0 = power(M3 % M2, M2 - 2, M2);
 const int i1 = power(pq % M1, M1 - 2, M1);
-const int u0 = pq % Q;
 
-int _c0[N], _c1[N], _c2[N];
-void convolution(int *a, int *b, int len, int *res) {
-  int LN = __builtin_ctz(len);
-  for (int i = 0; i < len; ++i) {
-    rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (LN - 1));
-  }
-  convolution<M1>(a, b, len, _c0);
-  convolution<M2>(a, b, len, _c1);
-  convolution<M3, 11>(a, b, len, _c2);
-  for (int i = 0; i < len; ++i) {
+std::vector<int> convolution(const std::vector<int>& a, const std::vector<int>& b) {
+  int len = ceil_pow2(a.size() + b.size() - 1);
+  FFTperpare(len);
+  std::vector<int> _c0 = convolution<M1>(a, b);
+  std::vector<int> _c1 = convolution<M2>(a, b);
+  std::vector<int> _c2 = convolution<M3>(a, b);
+  std::vector<int> res(a.size() + b.size() - 1);
+  for (int i = 0; i < res.size(); ++i) {
     int q0 = 1LL * (_c1[i] - _c2[i] % M2 + M2) * i0 % M2;
-    int64 y = 1LL * M3 * q0 + _c2[i];
+    int64 y = (1LL * M3 * q0 + _c2[i]) % pq;
     int q1 = 1LL * (_c0[i] - y % M1 + M1) * i1 % M1;
-    // int128 z = 1LL * pq * q1 + y;
-    res[i] = (1LL * u0 * q1 % Q + y) % Q;
+    res[i] = (pq % Q * q1 % Q + y) % Q;
   }
+  return res;
 }
 
 /** x = A * 2^15 + B */
