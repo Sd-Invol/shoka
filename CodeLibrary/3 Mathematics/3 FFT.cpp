@@ -48,15 +48,15 @@ void FFT(Complex P[], int n, int oper) {
   }
 }
 
-/**  FFT mod 1e9 + 7, three mods with CRT by NTT */
-const int Q = 1e9 + 7;
-constexpr int power(int A, int B, int QQ = Q) {
+/**  NTT */
+template <const int mod>
+constexpr int power(int A, int B) {
   int res = 1;
   while (B) {
     if (B & 1) {
-      res = 1LL * res * A % QQ;
+      res = 1LL * res * A % mod;
     }
-    A = 1LL * A * A % QQ;
+    A = 1LL * A * A % mod;
     B >>= 1;
   }
   return res;
@@ -68,7 +68,6 @@ inline int ceil_pow2(unsigned x) {
 inline int add(int A, int B, int mod) {
   return A + B >= mod ? A + B - mod : A + B;
 }
-
 template <const int mod>
 void FFT(std::vector<int> &P, int oper) {
   int n = P.size();
@@ -81,9 +80,9 @@ void FFT(std::vector<int> &P, int oper) {
   }
   for (int d = 0; (1 << d) < n; d++) {
     int m = 1 << d, m2 = m << 1;
-    int unit_p0 = power(3, (mod - 1) >> (d + 1), mod);
+    int unit_p0 = power<mod>(3, (mod - 1) >> (d + 1));
     if (oper == -1) {
-      unit_p0 = power(unit_p0, mod - 2, mod);
+      unit_p0 = power<mod>(unit_p0, mod - 2);
     }
     for (int i = 0; i < n; i += m2) {
       int unit = 1;
@@ -97,8 +96,7 @@ void FFT(std::vector<int> &P, int oper) {
     }
   }
 }
-
-template <const int mod>
+template <const int mod = 998244353>
 std::vector<int> convolution(const std::vector<int> &a,
                              const std::vector<int> &b) {
   int len = ceil_pow2(a.size() + b.size() - 1);
@@ -107,7 +105,7 @@ std::vector<int> convolution(const std::vector<int> &a,
   _b.resize(len);
   FFT<mod>(_a, 1);
   FFT<mod>(_b, 1);
-  int inv = power(len, mod - 2, mod);
+  int inv = power<mod>(len, mod - 2);
   std::vector<int> res(len);
   for (int i = 0; i < res.size(); ++i) {
     res[i] = 1LL * _a[i] * _b[i] % mod * inv % mod;
@@ -117,6 +115,8 @@ std::vector<int> convolution(const std::vector<int> &a,
   return res;
 }
 
+/** FFT mod 1e9 + 7, three mods with CRT by NTT */
+static const int Q = 1e9 + 7;
 static const int M1 = 167772161;
 static const int M2 = 998244353;
 static const int M3 = 1004535809;
