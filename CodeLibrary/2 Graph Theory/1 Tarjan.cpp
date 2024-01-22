@@ -1,44 +1,49 @@
-namespace tarjan {
-int low[N], ord[N];
-int scnt, bel[N];
-bool in_stack[N];
-std::stack<int> stack;
-void dfs(int x, int &&ncnt) {
-  low[x] = ord[x] = ++ncnt;
-  in_stack[x] = 1;
-  stack.push(x);
-  for (auto &y : e[x]) {
-    if (!ord[y]) {
-      dfs(y, std::move(ncnt));
-      low[x] = std::min(low[x], low[y]);
-    } else if (in_stack[y]) {
-      low[x] = std::min(low[x], ord[y]);
-    }
+class Tarjan {
+ public:
+  int n, scnt;
+  std::vector<std::vector<int>> e;
+  std::vector<int> low, ord, bel, in_stack;
+  std::stack<int> stack;
+
+  Tarjan(std::vector<std::vector<int>> e) : n(e.size()), scnt(0), e(e) {
+    low.assign(n, 0);
+    ord.assign(n, 0);
+    bel.assign(n, -1);
+    in_stack.assign(n, 0);
   }
-  if (low[x] == ord[x]) {
-    while (true) {
-      int i = stack.top();
-      stack.pop();
-      in_stack[i] = false;
-      bel[i] = scnt;
-      if (i == x) {
-        break;
+  void dfs(int x, int &&ncnt) {
+    low[x] = ord[x] = ++ncnt;
+    in_stack[x] = 1;
+    stack.push(x);
+    for (auto &y : e[x]) {
+      if (!ord[y]) {
+        dfs(y, std::move(ncnt));
+        low[x] = std::min(low[x], low[y]);
+      } else if (in_stack[y]) {
+        low[x] = std::min(low[x], ord[y]);
       }
     }
-    ++scnt;
-  }
-}
-void GetSCC() {
-  std::fill(ord, ord + n, 0);
-  scnt = 0;
-  for (int i = 0; i < n; ++i) {
-    if (!ord[i]) {
-      dfs(i, 0);
+    if (low[x] == ord[x]) {
+      int i;
+      do {
+        i = stack.top();
+        stack.pop();
+        in_stack[i] = false;
+        bel[i] = scnt;
+      } while (i != x);
+      ++scnt;
     }
   }
-}
-
-}  // namespace tarjan
+  void processScc() {
+    scnt = 0;
+    ord.assign(n, 0);
+    for (int i = 0; i < n; ++i) {
+      if (!ord[i]) {
+        dfs(i, 0);
+      }
+    }
+  }
+};
 
 /***********************************************/
 int dfn[N], low[N], ncnt;
